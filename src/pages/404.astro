@@ -1,0 +1,21 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Button from "../components/ui/Button.astro";
+---
+
+<BaseLayout title="404 — Not Found | Harshit Sharma">
+    <section
+        class="container py-28 sm:py-44 flex flex-col items-center justify-center text-center"
+    >
+        <span class="font-mono text-faint text-sm mb-4">404</span>
+        <h1 class="text-3xl sm:text-5xl font-medium tracking-tight mb-4">
+            Page not found
+        </h1>
+        <p class="text-dim text-[15px] max-w-md mx-auto mb-10">
+            The page you are looking for doesn't exist or has been moved.
+        </p>
+        <a href="/">
+            <Button variant="inverted">← Back to home</Button>
+        </a>
+    </section>
+</BaseLayout>

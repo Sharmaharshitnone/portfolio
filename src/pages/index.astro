@@ -1,17 +1,225 @@
 ---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { TerminalHero } from "../components/interactive/TerminalHero";
+import SectionHeading from "../components/ui/SectionHeading.astro";
+import Card from "../components/ui/Card.astro";
+import Badge from "../components/ui/Badge.astro";
+import Button from "../components/ui/Button.astro";
+import { STATS, TECH_STACK, PLATFORM_NAMES } from "../lib/constants";
+import { getCollection } from "astro:content";
+import { Github, ArrowRight } from "lucide-preact";
 
+const allProjects = await getCollection("projects");
+const featuredProjects = allProjects
+	.filter((p) => p.data.featured)
+	.sort((a, b) => a.data.order - b.data.order)
+	.slice(0, 3);
+
+const allAlgorithms = await getCollection("algorithms");
+const recentAlgorithms = allAlgorithms
+	.sort(
+		(a, b) =>
+			new Date(b.data.solved).getTime() -
+			new Date(a.data.solved).getTime()
+	)
+	.slice(0, 5);
+
+const difficultyColors = {
+	easy: "#3fb950",
+	medium: "#d29922",
+	hard: "#f85149",
+};
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title="Harshit Sharma — Systems Engineer">
+	{/* Hero Section */}
+	<section
+		aria-labelledby="hero-heading"
+		class="container pt-20 sm:pt-32 pb-24 sm:pb-36 flex flex-col items-start"
+	>
+		<h1
+			id="hero-heading"
+			class="text-foreground tracking-tight leading-[1.15] font-medium mb-4"
+			style="font-size: clamp(2rem, 5vw, 3rem);"
+		>
+			Harshit Sharma
+		</h1>
+		<p class="text-dim text-[15px] max-w-xl leading-relaxed mb-14 sm:mb-16">
+			Systems engineer building distributed infrastructure. I write code
+			that runs at scale and doesn't break at 3am.
+		</p>
+		<div class="w-full text-left">
+			<TerminalHero client:load />
+		</div>
+	</section>
+
+	{/* Stats Section */}
+	<section
+		aria-label="Quick statistics"
+		class="container pb-24 sm:pb-36 flex flex-wrap justify-start gap-x-10 gap-y-4"
+	>
+		{
+			STATS.map((stat) => (
+				<div class="flex items-baseline">
+					<span class="font-mono text-foreground text-lg">
+						{stat.value}
+					</span>
+					<span class="text-faint text-sm ml-2">{stat.label}</span>
+				</div>
+			))
+		}
+	</section>
+
+	{/* Featured Projects */}
+	<section
+		aria-labelledby="projects-heading"
+		class="container pb-24 sm:pb-36"
+	>
+		<div class="flex items-center justify-between mb-8">
+			<SectionHeading id="projects-heading" text="Featured Projects" />
+			<a
+				href="/projects"
+				class="text-faint hover:text-dim text-sm inline-flex items-center gap-1 transition-colors"
+			>
+				View all <ArrowRight class="w-3.5 h-3.5" />
+			</a>
+		</div>
+
+		<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+			{
+				featuredProjects.map((project) => (
+					<Card class="p-5 hover:bg-surface transition-colors">
+						<div class="flex justify-between items-start mb-3">
+							<h3 class="text-foreground font-medium transition-colors">
+								{project.data.title}
+							</h3>
+							<div class="flex items-center gap-3 text-subtle font-mono text-xs">
+								<span>★ {project.data.stars}</span>
+								{project.data.forks && (
+									<span>⑂ {project.data.forks}</span>
+								)}
+							</div>
+						</div>
+						<p class="text-dim text-sm line-clamp-2 mb-4">
+							{project.data.description}
+						</p>
+						<div class="flex flex-wrap gap-2">
+							{project.data.techStack
+								.slice(0, 3)
+								.map((tech: string) => (
+									<Badge variant="default">{tech}</Badge>
+								))}
+						</div>
+					</Card>
+				))
+			}
+		</div>
+	</section>
+
+	{/* Tech Stack */}
+	<section aria-labelledby="tech-heading" class="container pb-24 sm:pb-36">
+		<SectionHeading id="tech-heading" text="Tech Stack" class="mb-8" />
+		<div
+			class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-9 gap-5 sm:gap-7"
+		>
+			{
+				TECH_STACK.map((tech) => (
+					<div class="group flex flex-col items-center gap-2">
+						<div class="w-12 h-12 sm:w-[52px] sm:h-[52px] border border-border rounded-md flex items-center justify-center text-[#8b949e] group-hover:bg-surface-raised transition-colors">
+							<i class={`${tech.icon} text-2xl`} />
+						</div>
+						<span class="text-faint group-hover:text-dim text-[10px] font-mono transition-colors">
+							{tech.label}
+						</span>
+					</div>
+				))
+			}
+		</div>
+	</section>
+
+	{/* Recent Problems */}
+	<section
+		aria-labelledby="problems-heading"
+		class="container pb-24 sm:pb-36"
+	>
+		<div class="flex items-center justify-between mb-8">
+			<SectionHeading id="problems-heading" text="Recent Problems" />
+			<a
+				href="/algorithms"
+				class="text-faint hover:text-dim text-sm inline-flex items-center gap-1 transition-colors"
+			>
+				All problems <ArrowRight class="w-3.5 h-3.5" />
+			</a>
+		</div>
+
+		<div class="border border-border rounded-md bg-card overflow-hidden">
+			{
+				recentAlgorithms.map((problem, i) => (
+					<a
+						href={`/algorithms/${problem.id}`}
+						class={`flex items-center justify-between p-4 hover:bg-surface transition-colors ${
+							i !== 0 ? "border-t border-border" : ""
+						}`}
+					>
+						<div class="flex items-center gap-4">
+							<Badge
+								variant="difficulty"
+								color={
+									difficultyColors[
+										problem.data
+											.difficulty as keyof typeof difficultyColors
+									]
+								}
+							>
+								<span class="hidden sm:inline capitalize">
+									{problem.data.difficulty}
+								</span>
+							</Badge>
+							<Badge variant="platform">
+								{problem.data.platform}
+							</Badge>
+							<span class="text-subtle text-sm font-medium">
+								{problem.data.title}
+							</span>
+						</div>
+						<div class="flex items-center gap-4">
+							<span class="text-faint font-mono text-xs hidden sm:block">
+								{problem.data.solved}
+							</span>
+							<ArrowRight class="w-4 h-4 text-faint" />
+						</div>
+					</a>
+				))
+			}
+		</div>
+	</section>
+
+	{/* CTA */}
+	<section aria-labelledby="cta-heading" class="container pb-28 sm:pb-40">
+		<SectionHeading
+			id="cta-heading"
+			text="Let's work together"
+			class="mb-4"
+		/>
+		<p class="text-dim text-sm mb-8 max-w-md">
+			Open to collaborations on systems programming, distributed systems,
+			and open source infrastructure.
+		</p>
+		<div class="flex items-center gap-4">
+			<a href="mailto:harshit@systems.dev">
+				<Button variant="inverted" class="gap-2"
+					>Get in touch <ArrowRight class="w-3.5 h-3.5" />
+				</Button>
+			</a>
+			<a
+				href="https://github.com/harshit"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				<Button variant="outline" class="gap-2">
+					<Github class="w-4 h-4" /> GitHub
+				</Button>
+			</a>
+		</div>
+	</section>
+</BaseLayout>

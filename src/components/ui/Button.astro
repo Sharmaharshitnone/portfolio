@@ -1,0 +1,41 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"button"> {
+    variant?: "default" | "outline" | "ghost" | "inverted";
+    size?: "sm" | "md" | "lg";
+}
+
+const {
+    variant = "default",
+    size = "md",
+    class: className,
+    ...rest
+} = Astro.props;
+
+const base =
+    "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 cursor-pointer";
+
+const variants: Record<NonNullable<Props["variant"]>, string> = {
+    default:
+        "bg-card text-card-foreground border border-border hover:bg-surface",
+    outline:
+        "border border-border bg-transparent hover:bg-surface text-foreground",
+    ghost: "hover:bg-surface text-foreground",
+    inverted: "bg-foreground text-background hover:opacity-90",
+};
+
+const sizes: Record<NonNullable<Props["size"]>, string> = {
+    sm: "h-8 px-3 text-xs",
+    md: "h-10 px-4 py-2 text-[13px]",
+    lg: "h-11 px-6 text-[15px]",
+};
+
+const classes = [base, variants[variant], sizes[size], className]
+    .filter(Boolean)
+    .join(" ");
+---
+
+<button class={classes} {...rest}>
+    <slot />
+</button>

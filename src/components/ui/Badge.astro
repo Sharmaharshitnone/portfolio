@@ -1,0 +1,48 @@
+---
+interface Props {
+    variant?: "default" | "inverted" | "difficulty" | "platform";
+    color?: string;
+    class?: string;
+}
+
+const { variant = "default", color, class: className } = Astro.props;
+
+let variantClasses = "";
+let customStyle = "";
+
+if (variant === "default") {
+    variantClasses =
+        "bg-badge-bg text-badge-text font-mono text-[11px] px-2 py-0.5 rounded border border-badge-border";
+} else if (variant === "inverted") {
+    variantClasses =
+        "bg-foreground text-background font-mono text-[11px] px-2 py-0.5 rounded";
+} else if (variant === "platform") {
+    variantClasses =
+        "bg-badge-bg text-badge-text font-mono text-[11px] px-2 py-0.5 rounded border border-badge-border";
+} else if (variant === "difficulty") {
+    variantClasses =
+        "bg-transparent font-mono text-[11px] px-0 py-0 flex items-center gap-1.5";
+    if (color) customStyle = `color: ${color};`;
+}
+
+// For difficulty variant, we expect a color prop (e.g. #3fb950) to color the dot and text.
+---
+
+{
+    variant === "difficulty" ? (
+        <span class={`flex items-center gap-1.5 ${className || ""}`}>
+            <span
+                class="w-[6px] h-[6px] rounded-full"
+                style={`background-color: ${color}`}
+                aria-hidden="true"
+            />
+            <span class={variantClasses} style={customStyle}>
+                <slot />
+            </span>
+        </span>
+    ) : (
+        <span class={`${variantClasses} ${className || ""}`}>
+            <slot />
+        </span>
+    )
+}

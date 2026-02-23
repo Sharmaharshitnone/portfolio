@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+@theme {
+    --color-background: var(--bg);
+    --color-foreground: var(--fg);
+    --color-card: var(--card-bg);
+    --color-card-foreground: var(--fg);
+    --color-muted: var(--card-bg);
+    --color-muted-foreground: var(--dim);
+    --color-border: var(--border);
+    --color-ring: var(--accent);
+    --color-destructive: #f85149;
+
+    --color-surface: var(--surface);
+    --color-surface-raised: var(--surface-raised);
+    --color-dim: var(--dim);
+    --color-subtle: var(--subtle);
+    --color-faint: var(--faint);
+    --color-line: var(--border);
+    --color-line-strong: var(--border-strong);
+
+    --color-accent: #22d3ee;
+    --color-accent-glow: #00e5a0;
+
+    --color-diff-easy: #3fb950;
+    --color-diff-medium: #d29922;
+    --color-diff-hard: #f85149;
+
+    --color-badge-bg: var(--badge-bg);
+    --color-badge-border: var(--badge-border);
+    --color-badge-text: var(--badge-text);
+
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+}
+
+/* ── Dark-only palette ── */
+:root {
+    --bg: #0d1117;
+    --fg: #e6edf3;
+    --card-bg: #161b22;
+    --surface: #161b22;
+    --surface-raised: #1c2128;
+    --dim: #9ea7b3;
+    --subtle: #d2dae4;
+    --faint: #7d8590;
+    --border: #30363d;
+    --border-strong: #484f58;
+    --accent: #58a6ff;
+    --badge-bg: #21262d;
+    --badge-border: #30363d;
+    --badge-text: #d2dae4;
+}
+
+@layer base {
+    body {
+        background-color: var(--bg);
+        color: var(--fg);
+        @apply font-sans antialiased;
+    }
+
+    ::selection {
+        background: rgba(88, 166, 255, 0.25);
+    }
+
+    :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+    :focus:not(:focus-visible) {
+        outline: none;
+    }
+}
+
+@layer utilities {
+    .container {
+        width: 100%;
+        max-width: 1280px;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+    }
+
+    @media (min-width: 640px) {
+        .container {
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .container {
+            padding-left: 3rem;
+            padding-right: 3rem;
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

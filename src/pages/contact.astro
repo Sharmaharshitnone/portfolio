@@ -1,0 +1,121 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SectionHeading from "../components/ui/SectionHeading.astro";
+import { CONTACT_LINKS } from "../lib/constants";
+import { ArrowUpRight } from "lucide-preact";
+---
+
+<BaseLayout title="Contact — Harshit Sharma">
+    <div class="container py-20 sm:py-32">
+        <SectionHeading text="Contact" class="mb-4" />
+        <p class="text-dim text-[15px] max-w-2xl mb-16 sm:mb-24">
+            I'm always interested in hearing about new projects, opportunities,
+            or just chatting about distributed systems and Rust.
+        </p>
+
+        <div class="grid lg:grid-cols-2 gap-20 lg:gap-32">
+            {/* Contact Form Island */}
+            {
+                /* 
+        This is an Astro static mockup for the UI. In the full implementation, 
+        this would be an island <ContactForm client:visible /> 
+      */
+            }
+            <form class="flex flex-col gap-8">
+                <div class="flex flex-col gap-2">
+                    <label for="name" class="text-dim text-[13px]">Name</label>
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        placeholder="Your name"
+                        class="bg-transparent border-b border-border py-3 text-sm text-foreground focus:border-foreground transition-colors focus:outline-none placeholder:text-faint"
+                        required
+                    />
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="email" class="text-dim text-[13px]">Email</label
+                    >
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="you@example.com"
+                        class="bg-transparent border-b border-border py-3 text-sm text-foreground focus:border-foreground transition-colors focus:outline-none placeholder:text-faint"
+                        required
+                    />
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="message" class="text-dim text-[13px]"
+                        >Message</label
+                    >
+                    <textarea
+                        id="message"
+                        name="message"
+                        rows="5"
+                        placeholder="What would you like to discuss?"
+                        class="bg-transparent border-b border-border py-3 text-sm text-foreground focus:border-foreground transition-colors focus:outline-none resize-none placeholder:text-faint"
+                        required></textarea>
+                </div>
+
+                <button
+                    type="submit"
+                    class="bg-foreground text-background inline-flex items-center justify-center rounded-md font-medium transition-colors hover:opacity-90 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 text-[13px] w-full sm:w-auto self-start"
+                >
+                    Send message
+                </button>
+            </form>
+
+            {/* Info Panel */}
+            <div class="flex flex-col gap-10">
+                <div class="space-y-6">
+                    {
+                        CONTACT_LINKS.map((link) => (
+                            <div class="flex items-center justify-between group">
+                                <div class="flex items-center gap-4">
+                                    <link.icon class="w-5 h-5 text-faint group-hover:text-dim transition-colors" />
+                                    <span class="text-[11px] font-mono uppercase text-dim">
+                                        {link.label}
+                                    </span>
+                                </div>
+                                {link.href ? (
+                                    <a
+                                        href={link.href}
+                                        target={
+                                            link.href.startsWith("http")
+                                                ? "_blank"
+                                                : undefined
+                                        }
+                                        rel={
+                                            link.href.startsWith("http")
+                                                ? "noopener noreferrer"
+                                                : undefined
+                                        }
+                                        class="text-subtle text-[15px] hover:text-foreground transition-colors flex items-center gap-1"
+                                    >
+                                        {link.value}
+                                        {link.href.startsWith("http") && (
+                                            <ArrowUpRight class="w-3.5 h-3.5 text-faint" />
+                                        )}
+                                    </a>
+                                ) : (
+                                    <span class="text-subtle text-[15px]">
+                                        {link.value}
+                                    </span>
+                                )}
+                            </div>
+                        ))
+                    }
+                </div>
+
+                <div class="pt-10 border-t border-border mt-auto">
+                    <p class="text-dim text-[13px]">
+                        Currently open to opportunities starting Q3 2026.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</BaseLayout>

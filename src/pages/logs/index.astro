@@ -1,0 +1,100 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+import { Clock, ChevronRight } from "lucide-preact";
+
+const logs = await getCollection("logs");
+const sortedLogs = logs.sort(
+    (a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+);
+---
+
+<BaseLayout title="Engineering Logs | Harshit Sharma">
+    <div class="container py-20 sm:py-32">
+        <header class="mb-12">
+            <h1
+                class="text-3xl sm:text-5xl font-medium tracking-tight text-foreground mb-4"
+            >
+                Engineering Logs
+            </h1>
+            <p class="text-dim text-[15px] max-w-2xl leading-relaxed">
+                Daily notes, system design thoughts, and active challenges I'm
+                solving.
+            </p>
+        </header>
+
+        {/* Tags Filter Mockup */}
+        <div
+            class="flex items-center gap-2 mb-16 overflow-x-auto pb-2 scrollbar-none"
+        >
+            <button
+                class="bg-foreground text-background text-[11px] font-mono px-3 py-1.5 rounded-md shrink-0"
+                >all</button
+            >
+            {
+                ["rust", "distributed-systems", "ebpf", "performance"].map(
+                    (tag) => (
+                        <button class="text-faint hover:text-dim border border-border text-[11px] font-mono px-3 py-1.5 rounded-md transition-colors shrink-0">
+                            {tag}
+                        </button>
+                    )
+                )
+            }
+        </div>
+
+        {/* Timeline Layout */}
+        <div
+            class="relative ml-2 sm:ml-4 border-l border-border pl-8 sm:pl-10 pb-12"
+        >
+            <div class="flex flex-col gap-12">
+                {
+                    sortedLogs.map((log) => (
+                        <div class="relative">
+                            {/* Branch dot */}
+                            <div class="absolute -left-[37px] sm:-left-[45px] top-1.5 w-[9px] h-[9px] rounded-full bg-foreground outline outline-4 outline-background" />
+
+                            <div class="flex flex-col gap-1 mb-2">
+                                <div class="flex items-center gap-3 text-[11px] font-mono text-faint">
+                                    {log.data.hash && (
+                                        <span>{log.data.hash}</span>
+                                    )}
+                                    <span>{log.data.date}</span>
+                                    {log.data.readTime && (
+                                        <span class="flex items-center gap-1">
+                                            <Clock class="w-3 h-3" />{" "}
+                                            {log.data.readTime}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            <button class="group flex items-center gap-2 w-full text-left mb-2">
+                                <ChevronRight class="w-4 h-4 text-faint group-hover:text-dim transition-transform duration-150" />
+                                <h2 class="text-[17px] font-medium text-foreground group-hover:text-subtle transition-colors">
+                                    {log.data.title}
+                                </h2>
+                            </button>
+
+                            <div class="pl-6">
+                                <p class="text-dim text-[15px] leading-relaxed mb-4">
+                                    This is a summarized excerpt of the log
+                                    entry. To view the full markdown content
+                                    click the header. Currently displaying
+                                    standard static UI based on specs.
+                                </p>
+
+                                <div class="flex flex-wrap gap-2">
+                                    {log.data.tags.map((tag: string) => (
+                                        <span class="text-[11px] font-mono text-badge-text bg-badge-bg px-2 py-0.5 rounded border border-badge-border">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                }
+            </div>
+        </div>
+    </div>
+</BaseLayout>
