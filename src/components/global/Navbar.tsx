@@ -9,19 +9,43 @@ interface Props {
 export function Navbar({ currentPath = "/" }: Props) {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [activePath, setActivePath] = useState(currentPath);
 
-    // Close mobile nav on route change (View Transitions)
+    // Sync active state and close mobile nav on route change (View Transitions)
+    // Runs on initial load and setup every client-side navigation.
     useEffect(() => {
-        const handleNav = () => setMobileOpen(false);
+        const handleNav = () => {
+            setMobileOpen(false);
+            setActivePath(window.location.pathname);
+        };
         document.addEventListener("astro:page-load", handleNav);
         return () => document.removeEventListener("astro:page-load", handleNav);
     }, []);
 
-    // Subtle scroll-driven shadow
+    // Subtle scroll-driven shadow (IntersectionObserver to fix Firefox APZ scroll-linked warning)
     useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 8);
-        window.addEventListener("scroll", handleScroll, { passive: true });
-        return () => window.removeEventListener("scroll", handleScroll);
+        let observer: IntersectionObserver;
+
+        const setupObserver = () => {
+            const sentinel = document.getElementById("nav-sentinel");
+            if (!sentinel) return;
+
+            if (observer) observer.disconnect();
+
+            observer = new IntersectionObserver(
+                ([entry]) => setScrolled(!entry.isIntersecting),
+                { root: null, threshold: 0 }
+            );
+            observer.observe(sentinel);
+        };
+
+        setupObserver();
+        document.addEventListener("astro:page-load", setupObserver);
+
+        return () => {
+            if (observer) observer.disconnect();
+            document.removeEventListener("astro:page-load", setupObserver);
+        };
     }, []);
 
     return (
@@ -45,8 +69,8 @@ export function Navbar({ currentPath = "/" }: Props) {
                     {NAV_LINKS.map((link) => {
                         const isActive =
                             link.href === "/"
-                                ? currentPath === "/"
-                                : currentPath.startsWith(link.href);
+                                ? activePath === "/"
+                                : activePath.startsWith(link.href);
 
                         return (
                             <a
@@ -94,8 +118,8 @@ export function Navbar({ currentPath = "/" }: Props) {
                     {NAV_LINKS.map((link) => {
                         const isActive =
                             link.href === "/"
-                                ? currentPath === "/"
-                                : currentPath.startsWith(link.href);
+                                ? activePath === "/"
+                                : activePath.startsWith(link.href);
 
                         return (
                             <a
