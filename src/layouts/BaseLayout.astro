@@ -75,11 +75,12 @@ const searchItems = [
         </a>
 
         <!-- Fixed navbar + controls -->
-        <Navbar />
-        <div class="fixed top-0 right-14 md:right-8 h-14 flex items-center gap-3 z-[51]">
-            <SearchBar client:load items={searchItems} />
-            <ThemeToggle client:load />
-        </div>
+        <Navbar>
+            <Fragment slot="nav-right">
+                <SearchBar client:load items={searchItems} />
+                <ThemeToggle client:load />
+            </Fragment>
+        </Navbar>
         <!-- Spacer for fixed header height -->
         <div class="h-14" aria-hidden="true"></div>
 

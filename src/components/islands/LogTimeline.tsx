@@ -4,6 +4,7 @@ interface LogEntry {
     id: string;
     title: string;
     description: string;
+    overviewHtml: string; // Rendered markdown HTML for expanded view
     type: string;
     tags: string[];
     mood?: string;
@@ -152,9 +153,9 @@ export function LogTimeline({ logs, allTags }: Props) {
                                     </h2>
                                 </button>
 
-                                {/* Description (always visible) */}
+                                {/* Description — visible only when collapsed */}
                                 {!isOpen && (
-                                    <p className="pl-6 text-dim text-sm mb-3">
+                                    <p className="pl-6 text-dim text-sm mb-3 line-clamp-2">
                                         {log.description}
                                     </p>
                                 )}
@@ -171,15 +172,21 @@ export function LogTimeline({ logs, allTags }: Props) {
                                     ))}
                                 </div>
 
-                                {/* Expanded content */}
+                                {/* Log Overview — rendered markdown, visible when expanded */}
                                 {isOpen && (
-                                    <div className="pl-6 mt-4 border-l-2 border-accent/40 ml-2 pl-6">
-                                        <p className="text-dim text-sm leading-[1.7] italic mb-4">
-                                            {log.description}
-                                        </p>
+                                    <div className="pl-6 mt-4 ml-2">
+                                        <div className="border-l-2 border-[var(--accent)]/40 pl-5 py-1">
+                                            <h3 className="text-[12px] font-mono uppercase tracking-wider text-[var(--faint)] mb-3">
+                                                Log Overview
+                                            </h3>
+                                            <div
+                                                className="log-overview-prose text-sm leading-[1.75] mb-5"
+                                                dangerouslySetInnerHTML={{ __html: log.overviewHtml }}
+                                            />
+                                        </div>
                                         <a
                                             href={log.href}
-                                            className="inline-flex items-center gap-1.5 text-accent text-sm font-mono hover:underline"
+                                            className="inline-flex items-center gap-1.5 text-[var(--accent)] text-sm font-mono hover:underline mt-3"
                                         >
                                             Read full log →
                                         </a>

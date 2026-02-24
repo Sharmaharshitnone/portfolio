@@ -1,7 +1,8 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { LogTimeline } from "../../components/islands/LogTimeline";
-import { getCollection, render } from "astro:content";
+import { getCollection } from "astro:content";
+import { marked } from "marked";
 
 const logs = await getCollection("logs");
 const sortedLogs = logs.sort(
@@ -22,20 +23,37 @@ function fakeHash(input: string): string {
     return Math.abs(hash).toString(16).padStart(7, '0').slice(0, 7);
 }
 
-// Get first paragraph of rendered markdown as description
-async function getDescription(log: typeof sortedLogs[number]): Promise<string> {
-    // Use the raw body if available, otherwise fall back to title
+// Short plain-text description for collapsed state
+function getDescription(log: typeof sortedLogs[number]): string {
     const body = log.body ?? '';
-    // Extract first non-empty line that isn't a code block
     const lines = body.split('\n').filter(l => l.trim() && !l.startsWith('```') && !l.startsWith('#'));
     return lines[0]?.trim().slice(0, 200) ?? log.data.title;
 }
 
+// Rendered markdown overview for expanded state (first ~800 chars of body prose)
+function getOverviewHtml(log: typeof sortedLogs[number]): string {
+    const body = log.body ?? '';
+    // Strip frontmatter-like lines, keep first meaningful portion
+    const lines = body.split('\n');
+    // Collect lines until we hit ~800 chars, skipping nothing (keep code blocks, lists, etc.)
+    let charCount = 0;
+    const selected: string[] = [];
+    for (const line of lines) {
+        if (charCount > 800) break;
+        selected.push(line);
+        charCount += line.length;
+    }
+    const overviewMd = selected.join('\n').trim();
+    if (!overviewMd) return `<p>${log.data.title}</p>`;
+    return marked.parse(overviewMd, { async: false }) as string;
+}
+
 // Serialise logs for the island
-const serialised = await Promise.all(sortedLogs.map(async (log) => ({
+const serialised = sortedLogs.map((log) => ({
     id: log.id,
     title: log.data.title,
-    description: await getDescription(log),
+    description: getDescription(log),
+    overviewHtml: getOverviewHtml(log),
     type: log.data.type,
     tags: log.data.tags,
     mood: log.data.mood,
@@ -43,7 +61,7 @@ const serialised = await Promise.all(sortedLogs.map(async (log) => ({
     pubDate: log.data.pubDate.toISOString(),
     href: `/logs/${log.id}`,
     commitHash: fakeHash(log.id + log.data.pubDate.toISOString()),
-})));
+}));
 ---
 
 <BaseLayout title="Engineering Logs | Harshit Sharma">
