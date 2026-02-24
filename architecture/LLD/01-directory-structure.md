@@ -49,13 +49,11 @@ portfolio/
 │   │   │   ├── ProjectCard.astro     # Project showcase card
 │   │   │   ├── AlgorithmRow.astro    # CP problem listing row
 │   │   │   ├── LogItem.astro         # Engineering log entry card
-│   │   │   ├── CaseStudy.astro       # Project case study layout
-│   │   │   └── TechStackBadges.astro # Technology tag group
+│   │   │   └── CaseStudy.astro       # Project case study layout
 │   │   │
 │   │   ├── sections/                 # Page sections (composed, zero JS)
 │   │   │   ├── Hero.astro            # Landing page hero
 │   │   │   ├── FeaturedProjects.astro # Homepage featured projects
-│   │   │   ├── SkillsGrid.astro      # Technical skills display
 │   │   │   ├── RecentLogs.astro      # Latest engineering logs
 │   │   │   └── AboutSection.astro    # About me section
 │   │   │

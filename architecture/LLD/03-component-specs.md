@@ -19,19 +19,17 @@ graph TD
     end
 
     subgraph Sections ["Page Sections"]
-        HERO[Hero]
-        FP[FeaturedProjects]
-        SG[SkillsGrid]
-        RL[RecentLogs]
-        AS[AboutSection]
+      HERO[Hero]
+      FP[FeaturedProjects]
+      RL[RecentLogs]
+      AS[AboutSection]
     end
 
     subgraph Domain ["Domain Components"]
-        PC[ProjectCard]
-        AR[AlgorithmRow]
-        LI[LogItem]
-        CS[CaseStudy]
-        TSB[TechStackBadges]
+      PC[ProjectCard]
+      AR[AlgorithmRow]
+      LI[LogItem]
+      CS[CaseStudy]
     end
 
     subgraph UI ["UI Primitives"]
@@ -59,7 +57,6 @@ graph TD
     HERO --> OI
     FP --> PC
     PC --> BDG
-    PC --> TSB
     AR --> BDG
     LI --> BDG
 ```

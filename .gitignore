@@ -23,7 +23,7 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 .vscode/
-
+.github/
 # Cloudflare Wrangler local state (contains auth tokens)
 .wrangler/
 

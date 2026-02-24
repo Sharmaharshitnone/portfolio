@@ -22,7 +22,7 @@ A developer portfolio serving as **Harshit Sharma's digital identity** — optim
 ### 3.1 Homepage (`/`)
 - [ ] Hero section with name, title, one-line pitch
 - [ ] Featured projects grid (top 3, pulled from content collection)
-- [ ] Skills/tech stack visualization
+- [ ] Skills/tech stack visualization — REMOVED from homepage; retained per-project case studies and project cards
 - [ ] Recent engineering logs feed (latest 5)
 - [ ] Link to blog (`blog.harshit.systems`)
 - [ ] Call-to-action for contact

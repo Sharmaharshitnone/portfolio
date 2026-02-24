@@ -26,7 +26,7 @@ The palette is **GitHub Dark Dimmed** exact — chosen because it's the most rea
 ```css
 /* Custom tokens beyond shadcn defaults */
 --color-surface:        #161b22    /* Hover-state card backgrounds */
---color-surface-raised: #1c2128    /* Elevated elements (tech stack icon boxes) */
+--color-surface-raised: #1c2128    /* Elevated elements (icon boxes / elevated panels) */
 --color-dim:            #8b949e    /* Secondary text (= muted-foreground) */
 --color-subtle:         #c9d1d9    /* Slightly brighter than dim — titles, links */
 --color-faint:          #484f58    /* Tertiary text (dates, counters, metadata) */

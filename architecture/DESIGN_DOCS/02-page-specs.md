@@ -34,7 +34,7 @@
 | 1 | **Hero** | `pt-20 sm:pt-32 pb-24 sm:pb-36` | Name, tagline, TerminalHero |
 | 2 | **Stats** | `pb-24 sm:pb-36` | 4 inline stats (mono values + faint labels) |
 | 3 | **Featured Projects** | `pb-24 sm:pb-36` | "Featured Projects" + "View all →" + 3-column grid |
-| 4 | **Tech Stack** | `pb-24 sm:pb-36` | "Tech Stack" + icon grid (4→6→9 columns) |
+| 4 | **Tech Stack** | `pb-24 sm:pb-36` | REMOVED from homepage — moved to project case studies and project cards |
 | 5 | **Recent Problems** | `pb-24 sm:pb-36` | "Recent Problems" + "All problems →" + bordered list |
 | 6 | **CTA** | `pb-28 sm:pb-40` | "Let's work together" + 2 action buttons |
 

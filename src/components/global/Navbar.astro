@@ -1,14 +1,15 @@
 ---
 /**
- * Navbar — Zero-JS Astro shell component.
- * Mobile toggle + scroll shadow handled via lightweight <script>.
+ * Navbar — Astro shell component.
+ * Mobile toggle + scroll shadow handled via hoisted <script>.
  * Active path resolved server-side from Astro.url.pathname.
- * Re-initialises on View Transition via astro:page-load.
  */
 import { NAV_LINKS } from "../../lib/constants";
 
 const currentPath = Astro.url.pathname;
 ---
+
+<div id="nav-sentinel" class="absolute top-0 h-[1px] w-full pointer-events-none opacity-0" aria-hidden="true"></div>
 
 <header
     id="site-nav"
@@ -24,7 +25,6 @@ const currentPath = Astro.url.pathname;
             harshit.systems
         </a>
 
-        <!-- Desktop Nav -->
         <nav class="hidden md:flex items-center gap-0.5" aria-label="Main navigation">
             {NAV_LINKS.map((link) => {
                 const isActive = link.href === "/"
@@ -47,7 +47,6 @@ const currentPath = Astro.url.pathname;
             })}
         </nav>
 
-        <!-- Mobile hamburger -->
         <button
             id="mobile-menu-btn"
             class="md:hidden p-2.5 text-dim hover:text-foreground transition-colors"
@@ -55,13 +54,11 @@ const currentPath = Astro.url.pathname;
             aria-expanded="false"
             aria-controls="mobile-nav"
         >
-            <!-- Menu icon (24x24 Lucide "Menu") -->
             <svg id="icon-menu" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <line x1="4" x2="20" y1="12" y2="12"></line>
                 <line x1="4" x2="20" y1="6" y2="6"></line>
                 <line x1="4" x2="20" y1="18" y2="18"></line>
             </svg>
-            <!-- X icon (24x24 Lucide "X") — hidden by default -->
             <svg id="icon-close" class="h-5 w-5 hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M18 6 6 18"></path>
                 <path d="m6 6 12 12"></path>
@@ -69,7 +66,6 @@ const currentPath = Astro.url.pathname;
         </button>
     </div>
 
-    <!-- Mobile Nav Panel -->
     <div
         id="mobile-nav"
         role="region"
@@ -101,7 +97,7 @@ const currentPath = Astro.url.pathname;
     </div>
 </header>
 
-<script is:inline>
+<script>
     function setupNav() {
         const btn = document.getElementById("mobile-menu-btn");
         const panel = document.getElementById("mobile-nav");
@@ -112,7 +108,7 @@ const currentPath = Astro.url.pathname;
 
         if (!btn || !panel || !iconMenu || !iconClose) return;
 
-        // Reset mobile menu to closed state on every page load
+        // Reset state
         let isOpen = false;
         panel.classList.add("max-h-0", "opacity-0");
         panel.classList.remove("max-h-[320px]", "opacity-100");
@@ -121,30 +117,24 @@ const currentPath = Astro.url.pathname;
         iconMenu.classList.remove("hidden");
         iconClose.classList.add("hidden");
 
-        // Clone + replace to remove stale listeners
-        const freshBtn = /** @type {HTMLElement} */ (btn.cloneNode(true));
-        btn.replaceWith(freshBtn);
+        // Idempotency Check: Prevent duplicate listeners on View Transitions without DOM thrashing
+        if (btn.dataset.navInitialized === "true") return;
+        btn.dataset.navInitialized = "true";
 
-        freshBtn.addEventListener("click", function () {
+        btn.addEventListener("click", function () {
             isOpen = !isOpen;
             panel.classList.toggle("max-h-0", !isOpen);
             panel.classList.toggle("opacity-0", !isOpen);
             panel.classList.toggle("max-h-[320px]", isOpen);
             panel.classList.toggle("opacity-100", isOpen);
             panel.setAttribute("aria-hidden", String(!isOpen));
-            freshBtn.setAttribute("aria-expanded", String(isOpen));
-            freshBtn.setAttribute(
-                "aria-label",
-                isOpen ? "Close navigation menu" : "Open navigation menu"
-            );
-            // Re-query icons after cloneNode
-            var menu = freshBtn.querySelector("#icon-menu");
-            var close = freshBtn.querySelector("#icon-close");
-            if (menu) menu.classList.toggle("hidden", isOpen);
-            if (close) close.classList.toggle("hidden", !isOpen);
+            btn.setAttribute("aria-expanded", String(isOpen));
+            btn.setAttribute("aria-label", isOpen ? "Close navigation menu" : "Open navigation menu");
+            
+            iconMenu.classList.toggle("hidden", isOpen);
+            iconClose.classList.toggle("hidden", !isOpen);
         });
 
-        // Scroll-driven shadow via IntersectionObserver
         if (sentinel && header) {
             new IntersectionObserver(
                 function (entries) {
@@ -155,6 +145,5 @@ const currentPath = Astro.url.pathname;
         }
     }
 
-    // Runs on initial load + every View Transition swap
     document.addEventListener("astro:page-load", setupNav);
 </script>

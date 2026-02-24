@@ -44,7 +44,7 @@ On a 375px phone: content = 375 × 0.90 = **337px**
 | Component | Mobile | `sm` (640px+) | `lg` (1024px+) |
 |---|---|---|---|
 | Project cards | 1 column | 2 columns | 3 columns |
-| Tech stack icons | 4 columns | 6 columns | 9 columns |
+| Tech stack icons | REMOVED from homepage; tech badges are shown per-project (project cards) | N/A | N/A |
 | Contact layout | Stacked | Stacked | 2-column `lg:grid-cols-2` |
 | Algorithm table | Stacked (single column) | 5-column grid | Same |
 

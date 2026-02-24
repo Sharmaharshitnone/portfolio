@@ -16,7 +16,7 @@ All data is hardcoded in TSX/TS files:
 | Stats | `HomePage.tsx` inline | 4 | label, value |
 | Contact links | `ContactPage.tsx` inline | 4 | icon, label, value, href |
 | Nav items | `Navbar.tsx` inline | 5 | to, label |
-| Tech stack | `TechIcons.tsx` inline | 18 | key, label, iconClass |
+| Tech stack | `TechIcons.tsx` inline | 18 | key, label, iconClass (kept in `src/lib/constants.ts`; used per-project rather than homepage) |
 
 ---
 
@@ -123,7 +123,7 @@ These datasets are small and static — keep as TypeScript constants:
 | Stats (4 items) | `src/lib/constants.ts` |
 | Contact links (4 items) | `src/lib/constants.ts` |
 | Nav items (5 items) | `src/lib/constants.ts` |
-| Tech stack (18 items) | `src/lib/constants.ts` |
+| Tech stack (18 items) | `src/lib/constants.ts` (used for project badges; not shown on homepage) |
 | Platform names map | `src/lib/constants.ts` |
 | Difficulty labels map | `src/lib/constants.ts` |
 
