@@ -1,12 +1,13 @@
 ---
 title: "Two Sum"
-platform: "LC"
+platform: "leetcode"
+problemUrl: "https://leetcode.com/problems/two-sum"
 difficulty: "easy"
 tags: ["hash-map", "array"]
-solved: "2025-10-01"
-link: "https://leetcode.com/problems/two-sum"
 timeComplexity: "O(n)"
 spaceComplexity: "O(n)"
+language: "cpp"
+pubDate: 2025-10-01
 ---
 
 A simple hash map solution to track complements.

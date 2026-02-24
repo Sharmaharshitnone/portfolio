@@ -1,0 +1,43 @@
+---
+/**
+ * FeaturedProjects — Homepage featured projects grid.
+ * Zero JS. Composes ProjectCard domain component.
+ */
+import SectionHeading from "../ui/SectionHeading.astro";
+import ProjectCard from "../domain/ProjectCard.astro";
+import { getCollection } from "astro:content";
+
+const allProjects = await getCollection("projects");
+const featuredProjects = allProjects
+    .filter((p) => p.data.featured)
+    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+    .slice(0, 3);
+---
+
+<section aria-labelledby="projects-heading" class="container pb-24 sm:pb-36">
+    <div class="flex items-center justify-between mb-8">
+        <SectionHeading id="projects-heading" text="Featured Projects" />
+        <a
+            href="/projects"
+            class="text-faint hover:text-dim text-sm inline-flex items-center gap-1 transition-colors"
+        >
+            View all
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {featuredProjects.map((project) => (
+            <ProjectCard
+                title={project.data.title}
+                description={project.data.description}
+                category={project.data.category}
+                techStack={project.data.techStack}
+                githubUrl={project.data.githubUrl}
+                liveUrl={project.data.liveUrl}
+                pubDate={project.data.pubDate}
+                href={`/projects/${project.id}`}
+            />
+        ))}
+    </div>
+</section>

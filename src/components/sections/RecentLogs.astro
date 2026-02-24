@@ -1,0 +1,45 @@
+---
+/**
+ * RecentLogs — Latest engineering log entries in timeline format.
+ * Zero JS. Composes LogItem domain component.
+ */
+import SectionHeading from "../ui/SectionHeading.astro";
+import LogItem from "../domain/LogItem.astro";
+import { getCollection } from "astro:content";
+
+const allLogs = await getCollection("logs");
+const recentLogs = allLogs
+    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+    .slice(0, 3);
+---
+
+{recentLogs.length > 0 && (
+    <section aria-labelledby="logs-heading" class="container pb-24 sm:pb-36">
+        <div class="flex items-center justify-between mb-8">
+            <SectionHeading id="logs-heading" text="Recent Logs" />
+            <a
+                href="/logs"
+                class="text-faint hover:text-dim text-sm inline-flex items-center gap-1 transition-colors"
+            >
+                All logs
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+        </div>
+
+        <div class="relative ml-2 sm:ml-4 border-l border-border pl-8 sm:pl-10">
+            <div class="flex flex-col gap-12">
+                {recentLogs.map((log) => (
+                    <LogItem
+                        title={log.data.title}
+                        pubDate={log.data.pubDate}
+                        type={log.data.type}
+                        tags={log.data.tags}
+                        mood={log.data.mood}
+                        hoursWorked={log.data.hoursWorked}
+                        href={`/logs/${log.id}`}
+                    />
+                ))}
+            </div>
+        </div>
+    </section>
+)}

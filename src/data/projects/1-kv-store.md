@@ -1,14 +1,20 @@
 ---
 title: "Distributed KV Store"
-description: "Raft-based distributed key-value store with consistent hashing."
-longDescription: "A production-grade distributed key-value store implementing the Raft consensus algorithm from scratch in Rust. Features include consistent hashing, snapshotting, and gRPC inter-node communication."
+description: "Raft-based distributed key-value store with consistent hashing and gRPC inter-node communication."
 techStack: ["Rust", "Raft", "gRPC", "Tokio", "RocksDB"]
-stars: 234
-forks: 45
-github: "https://github.com/harshit/distributed-kv"
+githubUrl: "https://github.com/harshit/distributed-kv"
 featured: true
 category: "systems"
-order: 1
+status: "active"
+pubDate: 2025-08-01
+problem: "Existing KV stores lack educational transparency into consensus internals."
+solution: "Built Raft from scratch in Rust with snapshotting, consistent hashing, and gRPC transport."
+challenges:
+  - "Implementing log compaction without blocking reads"
+  - "Handling split-brain scenarios during network partitions"
+outcomes:
+  - "234 GitHub stars"
+  - "Sub-5ms read latency at 10k QPS"
 ---
 
 Further case study details go here.

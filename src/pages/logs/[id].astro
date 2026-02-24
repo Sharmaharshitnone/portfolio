@@ -1,0 +1,70 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { generateLogSchema } from "../../lib/seo";
+export async function getStaticPaths() {
+    const logs = await getCollection("logs");
+    return logs.map((log) => ({
+        params: { id: log.id },
+        props: { log },
+    }));
+}
+
+const { log } = Astro.props;
+const { Content } = await render(log);
+
+const logSchema = generateLogSchema({
+    title: log.data.title,
+    pubDate: log.data.pubDate,
+    tags: log.data.tags,
+    url: `/logs/${log.id}`,
+});
+---
+
+<BaseLayout title={`${log.data.title} | Logs | Harshit Sharma`}>
+    <!-- JSON-LD: Article schema -->
+    <script slot="head" type="application/ld+json" set:html={JSON.stringify(logSchema)} />
+    <article class="container py-20 sm:py-32">
+        <!-- Back link -->
+        <a
+            href="/logs"
+            class="inline-flex items-center gap-1.5 text-faint hover:text-dim text-sm mb-10 transition-colors"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Back to Logs
+        </a>
+
+        <!-- Header -->
+        <header class="mb-12">
+            <div class="flex items-center gap-3 mb-4 text-[11px] font-mono text-faint">
+                <span class="uppercase">{log.data.type}</span>
+                <span>{log.data.pubDate.toISOString().slice(0, 10)}</span>
+                {log.data.hoursWorked && (
+                    <span class="inline-flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> {log.data.hoursWorked}h
+                    </span>
+                )}
+                {log.data.mood && (
+                    <span class="capitalize">{log.data.mood}</span>
+                )}
+            </div>
+
+            <h1 class="text-3xl sm:text-5xl font-medium tracking-tight text-foreground mb-6">
+                {log.data.title}
+            </h1>
+
+            <!-- Tags -->
+            <div class="flex flex-wrap gap-2">
+                {log.data.tags.map((tag: string) => (
+                    <span class="text-[11px] font-mono text-badge-text bg-badge-bg px-2 py-0.5 rounded border border-badge-border">
+                        {tag}
+                    </span>
+                ))}
+            </div>
+        </header>
+
+        <!-- Markdown body -->
+        <section class="prose prose-invert max-w-none text-dim">
+            <Content />
+        </section>
+    </article>
+</BaseLayout>

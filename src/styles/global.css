@@ -1,5 +1,27 @@
 @import "tailwindcss";
 
+/* ── Self-hosted fonts ── */
+@font-face {
+    font-family: 'Inter';
+    src: url('/fonts/inter-var-latin.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: 'JetBrains Mono';
+    src: url('/fonts/jetbrains-mono-latin.woff2') format('woff2');
+    font-weight: 400 700;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Tailwind v4: data-attribute dark mode */
+@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 @theme {
     --color-background: var(--bg);
     --color-foreground: var(--fg);
@@ -19,8 +41,8 @@
     --color-line: var(--border);
     --color-line-strong: var(--border-strong);
 
-    --color-accent: #22d3ee;
-    --color-accent-glow: #00e5a0;
+    --color-accent: #58a6ff;
+    --color-accent-glow: #388bfd;
 
     --color-diff-easy: #3fb950;
     --color-diff-medium: #d29922;
@@ -32,24 +54,66 @@
 
     --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+
+    --radius: 6px;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
 }
 
-/* ── Dark-only palette ── */
+/* ── Dark palette (default / SSR fallback) — GitHub Dark Dimmed exact ── */
 :root {
     --bg: #0d1117;
     --fg: #e6edf3;
     --card-bg: #161b22;
     --surface: #161b22;
     --surface-raised: #1c2128;
-    --dim: #9ea7b3;
-    --subtle: #d2dae4;
-    --faint: #7d8590;
+    --dim: #8b949e;
+    --subtle: #c9d1d9;
+    --faint: #484f58;
     --border: #30363d;
     --border-strong: #484f58;
     --accent: #58a6ff;
     --badge-bg: #21262d;
     --badge-border: #30363d;
-    --badge-text: #d2dae4;
+    --badge-text: #c9d1d9;
+}
+
+/* ── Light theme — applied when data-theme="light" is on <html> ── */
+[data-theme="light"] {
+    --bg: #f6f8fa;
+    --fg: #1f2328;
+    --card-bg: #ffffff;
+    --surface: #f0f3f6;
+    --surface-raised: #e8ecf0;
+    --dim: #656d76;
+    --subtle: #31363b;
+    --faint: #8b949e;
+    --border: #d0d7de;
+    --border-strong: #b1bac4;
+    --accent: #0969da;
+    --badge-bg: #eaeef2;
+    --badge-border: #d0d7de;
+    --badge-text: #24292f;
+}
+
+/* ── Dark theme explicit (matches :root) ── */
+[data-theme="dark"] {
+    --bg: #0d1117;
+    --fg: #e6edf3;
+    --card-bg: #161b22;
+    --surface: #161b22;
+    --surface-raised: #1c2128;
+    --dim: #8b949e;
+    --subtle: #c9d1d9;
+    --faint: #484f58;
+    --border: #30363d;
+    --border-strong: #484f58;
+    --accent: #58a6ff;
+    --badge-bg: #21262d;
+    --badge-border: #30363d;
+    --badge-text: #c9d1d9;
 }
 
 @layer base {
@@ -73,27 +137,18 @@
     }
 }
 
+/* ── Container: full-width % padding, no max-width ── */
 @layer utilities {
     .container {
         width: 100%;
-        max-width: 1280px;
-        margin-left: auto;
-        margin-right: auto;
-        padding-left: 1.25rem;
-        padding-right: 1.25rem;
+        padding-left: 5%;
+        padding-right: 5%;
     }
 
     @media (min-width: 640px) {
         .container {
-            padding-left: 2rem;
-            padding-right: 2rem;
-        }
-    }
-
-    @media (min-width: 1024px) {
-        .container {
-            padding-left: 3rem;
-            padding-right: 3rem;
+            padding-left: 6%;
+            padding-right: 6%;
         }
     }
 }
@@ -107,5 +162,136 @@
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
+    }
+}
+
+/* ── Prose: markdown content styling ── */
+@layer base {
+    .prose {
+        line-height: 1.75;
+        font-size: 15px;
+    }
+
+    .prose h1,
+    .prose h2,
+    .prose h3,
+    .prose h4 {
+        color: var(--fg);
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        margin-top: 2em;
+        margin-bottom: 0.75em;
+    }
+
+    .prose h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); }
+    .prose h2 { font-size: clamp(1.25rem, 3vw, 1.75rem); }
+    .prose h3 { font-size: 1.125rem; }
+
+    .prose p {
+        color: var(--dim);
+        margin-bottom: 1.25em;
+    }
+
+    .prose a {
+        color: var(--accent);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        transition: color 150ms ease;
+    }
+
+    .prose a:hover {
+        color: var(--fg);
+    }
+
+    .prose strong {
+        color: var(--fg);
+        font-weight: 600;
+    }
+
+    .prose ul,
+    .prose ol {
+        color: var(--dim);
+        padding-left: 1.5em;
+        margin-bottom: 1.25em;
+    }
+
+    .prose ul { list-style-type: disc; }
+    .prose ol { list-style-type: decimal; }
+
+    .prose li {
+        margin-bottom: 0.5em;
+    }
+
+    .prose li::marker {
+        color: var(--faint);
+    }
+
+    .prose blockquote {
+        border-left: 3px solid var(--border);
+        padding-left: 1em;
+        color: var(--dim);
+        font-style: italic;
+        margin: 1.5em 0;
+    }
+
+    .prose code {
+        font-family: var(--font-mono);
+        font-size: 0.875em;
+        background: var(--surface);
+        padding: 0.15em 0.4em;
+        border-radius: 4px;
+        color: var(--subtle);
+    }
+
+    .prose pre {
+        background: #010409;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        overflow-x: auto;
+        margin: 1.5em 0;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .prose pre code {
+        background: none;
+        padding: 0;
+        border-radius: 0;
+        color: var(--subtle);
+    }
+
+    .prose hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 2em 0;
+    }
+
+    .prose table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        margin: 1.5em 0;
+    }
+
+    .prose th {
+        text-align: left;
+        font-weight: 500;
+        color: var(--fg);
+        border-bottom: 1px solid var(--border);
+        padding: 0.75em 1em;
+    }
+
+    .prose td {
+        border-bottom: 1px solid #21262d;
+        padding: 0.75em 1em;
+        color: var(--dim);
+    }
+
+    .prose img {
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        margin: 1.5em 0;
+        max-width: 100%;
     }
 }

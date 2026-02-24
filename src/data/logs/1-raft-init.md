@@ -1,10 +1,10 @@
 ---
 title: "Implementing Raft Consensus from Scratch in Rust"
-date: "2026-02-18"
 type: "project"
 tags: ["rust", "distributed-systems", "raft"]
-readTime: "12 min"
-hash: "a3f7c2d"
+mood: "productive"
+hoursWorked: 4
+pubDate: 2026-02-18
 ---
 
 A deep dive into building a production-grade distributed key-value store. Today I focused on leader election and heartbeat mechanisms using Tokio's async primitives.

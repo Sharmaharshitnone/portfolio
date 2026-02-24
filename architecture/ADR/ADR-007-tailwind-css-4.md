@@ -46,8 +46,8 @@ Tailwind 4 moves config from `tailwind.config.js` → CSS `@theme` rule:
   --color-bg-secondary: #111111;
   --color-text-primary: #e4e4e7;
   --color-text-secondary: #a1a1aa;
-  --color-accent: #22d3ee;        /* Cyan accent */
-  --color-accent-hover: #06b6d4;
+  --color-accent: #58a6ff;        /* GitHub Blue accent */
+  --color-accent-glow: #388bfd;    /* Accent hover */
   --color-success: #4ade80;
   --color-warning: #facc15;
 

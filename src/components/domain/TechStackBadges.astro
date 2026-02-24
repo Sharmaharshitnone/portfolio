@@ -1,0 +1,22 @@
+---
+/**
+ * TechStackBadges — Grid of technology skills with monochrome lettermarks.
+ * Zero JS. Self-hosted, no CDN dependency (replaces Devicon).
+ */
+import { TECH_STACK } from "../../lib/constants";
+---
+
+<div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-9 gap-5 sm:gap-7">
+    {TECH_STACK.map((tech) => (
+        <div class="group flex flex-col items-center gap-2">
+            <div class="w-12 h-12 sm:w-[52px] sm:h-[52px] border border-border rounded-md flex items-center justify-center group-hover:bg-surface-raised transition-colors select-none">
+                <span class="font-mono text-[15px] font-semibold text-faint group-hover:text-dim transition-colors">
+                    {tech.abbr}
+                </span>
+            </div>
+            <span class="text-faint group-hover:text-dim text-[10px] font-mono transition-colors">
+                {tech.label}
+            </span>
+        </div>
+    ))}
+</div>

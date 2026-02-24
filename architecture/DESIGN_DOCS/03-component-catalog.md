@@ -30,7 +30,7 @@ Index  |  Projects  |  Algorithms  |  Logs  |  Contact
 #### Logo
 
 ```
-harshit.dev
+harshit.systems
 ```
 
 - Mono font, `text-[13px]`, `tracking-tight`
@@ -175,7 +175,7 @@ placeholder-color: var(--color-faint);
 │                               │
 │ [Rust] [GRPC] [Tokio]         │
 │───────────────────────────────│
-│ ⚙ Source    ↗ Demo            │
+│ ⚙ Source    ↗ Demo           │
 └──────────────────────────────┘
 ```
 

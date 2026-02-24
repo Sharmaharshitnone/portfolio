@@ -53,8 +53,9 @@ graph TD
 import { persistentAtom } from '@nanostores/persistent';
 import { atom } from 'nanostores';
 
-// Theme persists across sessions + view transitions
-export const $theme = persistentAtom<'light' | 'dark' | 'system'>('theme', 'system');
+// SSR-safe: starts 'dark' on server. FOUC script in BaseHead sets data-theme.
+export const $theme = atom<'dark' | 'light' | 'system'>('dark');
+// localStorage key: 'theme'  (plain atom + manual localStorage, not persistentAtom)
 
 // Algorithm filter — resets on page navigation
 export const $algoFilter = atom<{
@@ -85,10 +86,11 @@ Dark mode requires a render-blocking `is:inline` script in `<head>` to avoid Fla
 <!-- In BaseLayout.astro <head> — runs BEFORE first paint -->
 <script is:inline>
   (function() {
-    const theme = localStorage.getItem('harshit:theme') || 'system';
-    const isDark = theme === 'dark' ||
-      (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    document.documentElement.classList.toggle('dark', isDark);
+    var s = localStorage.getItem('theme');
+    var resolved = (s === 'light') ? 'light'
+      : (s === 'dark') ? 'dark'
+      : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', resolved);
   })();
 </script>
 ```

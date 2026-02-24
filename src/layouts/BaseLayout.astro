@@ -1,7 +1,8 @@
 ---
-import { ClientRouter } from "astro:transitions";
-import { Navbar } from "../components/global/Navbar";
-import { Footer } from "../components/global/Footer";
+import { ThemeToggle } from "../components/islands/ThemeToggle";
+import Navbar from "../components/global/Navbar.astro";
+import Footer from "../components/global/Footer.astro";
+import BaseHead from "../components/global/BaseHead.astro";
 import "../styles/global.css";
 
 interface Props {
@@ -16,62 +17,14 @@ const {
     description = "Senior Backend & Systems Engineer specializing in Rust, Go, and distributed systems.",
     ogImage,
 } = Astro.props;
-
-const canonicalURL = new URL(
-    Astro.url.pathname,
-    Astro.site ?? "https://harshit.systems"
-);
-const ogImageURL =
-    ogImage ?? new URL("/og-default.png", canonicalURL.origin).href;
-const currentPath = Astro.url.pathname;
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="scroll-smooth">
     <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-        <!-- Primary Meta -->
-        <title>{title}</title>
-        <meta name="description" content={description} />
-        <link rel="canonical" href={canonicalURL} />
-
-        <!-- Open Graph / Social -->
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={canonicalURL} />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:image" content={ogImageURL} />
-        <meta property="og:locale" content="en_US" />
-        <meta property="og:site_name" content="Harshit Sharma" />
-
-        <!-- Twitter / X -->
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:creator" content="@harshit" />
-        <meta name="twitter:title" content={title} />
-        <meta name="twitter:description" content={description} />
-        <meta name="twitter:image" content={ogImageURL} />
-
-        <!-- Robots -->
-        <meta name="robots" content="index, follow" />
-
-        <!-- Fonts: Preconnect first, then load -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
-            rel="stylesheet"
-        />
-
-        <!-- Devicon (tech stack icons) -->
-        <link
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css"
-        />
-
-        <!-- View Transitions -->
-        <ClientRouter />
+        <BaseHead title={title} description={description} ogImage={ogImage}>
+            <slot name="head" />
+        </BaseHead>
     </head>
 
     <body
@@ -94,10 +47,14 @@ const currentPath = Astro.url.pathname;
         </div>
 
         <!--
-          Header: Navbar (Preact island).
+          Header: Navbar (.astro shell) + ThemeToggle (Preact island, sibling).
         -->
-        <div class="sticky top-0 z-50 relative">
-            <Navbar client:idle transition:persist currentPath={currentPath} />
+        <div class="relative">
+            <Navbar />
+            <!-- ThemeToggle: right-14 on mobile (clears hamburger), right-8 on desktop -->
+            <div class="fixed top-0 right-14 md:right-8 h-14 flex items-center z-[51]">
+                <ThemeToggle client:load />
+            </div>
         </div>
 
         <main id="main-content" class="flex-1">

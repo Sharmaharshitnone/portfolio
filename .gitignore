@@ -23,4 +23,19 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 .vscode/
+
+# Cloudflare Wrangler local state (contains auth tokens)
+.wrangler/
+
+# Configuration with real API keys/IDs (use .template versions)
+wrangler.toml
+.dev.vars
+
+# Large font files (TTF) - only needed for build, not in git
+public/fonts/*.ttf
+
+# Deployment artifacts
+.cloudflare/
+
 # architecture/
+# Uncomment above line to exclude architecture docs

@@ -1,17 +1,11 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import SectionHeading from "../../components/ui/SectionHeading.astro";
-import Card from "../../components/ui/Card.astro";
-import Badge from "../../components/ui/Badge.astro";
-import Button from "../../components/ui/Button.astro";
+import ProjectCard from "../../components/domain/ProjectCard.astro";
 import { getCollection } from "astro:content";
-import { Filter, ArrowUpRight, Github } from "lucide-preact";
 
 const projects = await getCollection("projects");
-const sortedProjects = projects.sort((a, b) => a.data.order - b.data.order);
-
-// Assuming all but featured as simple grid for now since featured projects logic can be handled separately.
-// For simplicity, we just render them all in a grid as spec 2 says.
+const sortedProjects = projects.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 ---
 
 <BaseLayout title="Projects | Harshit Sharma">
@@ -28,14 +22,14 @@ const sortedProjects = projects.sort((a, b) => a.data.order - b.data.order);
             </p>
         </header>
 
-        {/* Filter Bar (Static Mockup) */}
+        {/* Filter Bar */}
         <div
             class="flex items-center gap-2 mb-10 overflow-x-auto pb-2 scrollbar-none"
         >
             <div
                 class="p-2 text-faint border border-border rounded-md shrink-0 bg-card"
             >
-                <Filter class="w-4 h-4" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
             </div>
             <div class="flex items-center gap-2">
                 <button
@@ -55,50 +49,16 @@ const sortedProjects = projects.sort((a, b) => a.data.order - b.data.order);
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {
                 sortedProjects.map((project) => (
-                    <Card class="p-5 hover:bg-surface transition-colors flex flex-col">
-                        <div class="flex justify-between items-start mb-3">
-                            <span class="text-xs font-mono text-dim uppercase tracking-wider">
-                                {project.data.category}
-                            </span>
-                            <div class="flex items-center gap-3 text-subtle font-mono text-xs">
-                                <span>★ {project.data.stars}</span>
-                                <span>⑂ {project.data.forks}</span>
-                            </div>
-                        </div>
-                        <h3 class="text-foreground font-medium mb-2 transition-colors">
-                            {project.data.title}
-                        </h3>
-                        <p class="text-dim text-sm line-clamp-2 mb-6 flex-1">
-                            {project.data.description}
-                        </p>
-                        <div class="flex flex-wrap gap-2 mb-6">
-                            {project.data.techStack.map((tech: string) => (
-                                <Badge variant="default">{tech}</Badge>
-                            ))}
-                        </div>
-                        <div class="pt-4 border-t border-border flex items-center justify-between mt-auto">
-                            {project.data.github && (
-                                <a
-                                    href={project.data.github}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="text-dim hover:text-subtle text-[13px] inline-flex items-center gap-1.5 transition-colors"
-                                >
-                                    <Github class="w-3.5 h-3.5" /> Source
-                                </a>
-                            )}
-                            {project.data.live && (
-                                <a
-                                    href={project.data.live}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="text-dim hover:text-subtle text-[13px] inline-flex items-center gap-1.5 transition-colors"
-                                >
-                                    <ArrowUpRight class="w-3.5 h-3.5" /> Demo
-                                </a>
-                            )}
-                        </div>
-                    </Card>
+                    <ProjectCard
+                        title={project.data.title}
+                        description={project.data.description}
+                        category={project.data.category}
+                        techStack={project.data.techStack}
+                        githubUrl={project.data.githubUrl}
+                        liveUrl={project.data.liveUrl}
+                        pubDate={project.data.pubDate}
+                        href={`/projects/${project.id}`}
+                    />
                 ))
             }
         </div>

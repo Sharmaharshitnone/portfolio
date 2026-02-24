@@ -1,0 +1,108 @@
+---
+/**
+ * BaseHead — Reusable <head> fragment.
+ * Handles all meta tags, OG, Twitter, fonts, JSON-LD, FOUC, and ClientRouter.
+ * Imported by BaseLayout.astro; can be overridden per-layout if needed.
+ */
+import { ClientRouter } from "astro:transitions";
+import { generatePersonSchema } from "../../lib/seo";
+
+interface Props {
+    title: string;
+    description: string;
+    ogImage?: string;
+    type?: "website" | "article";
+}
+
+const {
+    title,
+    description,
+    ogImage,
+    type = "website",
+} = Astro.props;
+
+const canonicalURL = new URL(
+    Astro.url.pathname,
+    Astro.site ?? "https://harshit.systems",
+);
+
+// Dynamic OG image: use explicit prop, or derive from pathname for content pages
+const pathname = Astro.url.pathname.replace(/\/$/, ''); // /projects/1-kv-store
+const isContentPage = /^\/(projects|algorithms|logs)\/[^/]+$/.test(pathname);
+const derivedOgPath = isContentPage ? `/og${pathname}.png` : null;
+const ogImageURL =
+    ogImage ?? (derivedOgPath ? new URL(derivedOgPath, canonicalURL.origin).href : new URL("/og-default.png", canonicalURL.origin).href);
+
+const personSchema = generatePersonSchema({ description });
+---
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- Primary Meta -->
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonicalURL} />
+
+<!-- Open Graph / Social -->
+<meta property="og:type" content={type} />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={ogImageURL} />
+<meta property="og:locale" content="en_US" />
+<meta property="og:site_name" content="Harshit Sharma" />
+
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:creator" content="@harshit" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImageURL} />
+
+<!-- Robots -->
+<meta name="robots" content="index, follow" />
+
+<!-- Fonts: self-hosted, preloaded for LCP -->
+<link rel="preload" href="/fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin />
+
+<!-- RSS autodiscovery -->
+<link rel="alternate" type="application/rss+xml" title="Harshit Sharma — RSS" href="/rss.xml" />
+
+<!-- JSON-LD: Person schema (global) -->
+<script type="application/ld+json" set:html={JSON.stringify(personSchema)} />
+
+<!-- Slot for per-page JSON-LD or extra head content -->
+<slot />
+
+<!--
+  FOUC Prevention + View Transition persistence.
+  Runs synchronously before first paint (is:inline).
+  Hooks into astro:before-swap / astro:after-swap for soft nav.
+-->
+<script is:inline>
+    (function () {
+        function resolve() {
+            var s = localStorage.getItem("theme");
+            if (s === "light") return "light";
+            if (s === "dark") return "dark";
+            return window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
+        }
+        function apply(doc) {
+            doc.documentElement.setAttribute("data-theme", resolve());
+        }
+        apply(document);
+        document.addEventListener("astro:before-swap", function (ev) {
+            apply(ev.newDocument);
+        });
+        document.addEventListener("astro:after-swap", function () {
+            apply(document);
+        });
+    })();
+</script>
+
+<!-- View Transitions -->
+<ClientRouter />

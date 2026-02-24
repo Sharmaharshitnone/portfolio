@@ -1,0 +1,97 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Badge from "../../components/ui/Badge.astro";
+import { PLATFORM_NAMES } from "../../lib/constants";
+export async function getStaticPaths() {
+    const algorithms = await getCollection("algorithms");
+    return algorithms.map((algo) => ({
+        params: { id: algo.id },
+        props: { algo },
+    }));
+}
+
+const { algo } = Astro.props;
+const { Content } = await render(algo);
+
+const difficultyColors: Record<string, string> = {
+    easy: "#3fb950",
+    medium: "#d29922",
+    hard: "#f85149",
+    expert: "#bc4a9b",
+};
+
+const platformName = PLATFORM_NAMES[algo.data.platform] ?? algo.data.platform;
+---
+
+<BaseLayout title={`${algo.data.title} | Algorithms | Harshit Sharma`}>
+    <article class="container py-20 sm:py-32">
+        <!-- Back link -->
+        <a
+            href="/algorithms"
+            class="inline-flex items-center gap-1.5 text-faint hover:text-dim text-sm mb-10 transition-colors"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg> Back to Algorithms
+        </a>
+
+        <!-- Header -->
+        <header class="mb-12">
+            <div class="flex items-center gap-3 mb-4">
+                <Badge variant="platform">{platformName}</Badge>
+                <span
+                    class="text-[13px] font-medium capitalize"
+                    style={`color: ${difficultyColors[algo.data.difficulty] ?? "#8b949e"}`}
+                >
+                    {algo.data.difficulty}
+                </span>
+                {algo.data.rating && (
+                    <span class="text-faint text-xs font-mono">Rating: {algo.data.rating}</span>
+                )}
+            </div>
+
+            <h1 class="text-3xl sm:text-5xl font-medium tracking-tight text-foreground mb-4">
+                {algo.data.title}
+            </h1>
+
+            <!-- Metadata row -->
+            <div class="flex flex-wrap items-center gap-4 text-[13px] text-faint font-mono mb-6">
+                <span>Time: {algo.data.timeComplexity}</span>
+                <span>Space: {algo.data.spaceComplexity}</span>
+                <span>Lang: {algo.data.language}</span>
+                {algo.data.executionTimeMs !== undefined && (
+                    <span>{algo.data.executionTimeMs}ms</span>
+                )}
+                {algo.data.memoryUsedKb !== undefined && (
+                    <span>{algo.data.memoryUsedKb}KB</span>
+                )}
+                <span>{algo.data.pubDate.toISOString().slice(0, 10)}</span>
+            </div>
+
+            <!-- Tags -->
+            <div class="flex flex-wrap gap-2 mb-6">
+                {algo.data.tags.map((tag: string) => (
+                    <span class="text-[11px] font-mono text-badge-text bg-badge-bg px-2 py-0.5 rounded border border-badge-border">
+                        {tag}
+                    </span>
+                ))}
+            </div>
+
+            <!-- Problem link -->
+            {algo.data.problemUrl && (
+                <a
+                    href={algo.data.problemUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-dim hover:text-subtle text-[13px] inline-flex items-center gap-1.5 transition-colors"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> View Original Problem
+                </a>
+            )}
+        </header>
+
+        <!-- Markdown body (solution write-up + code) -->
+        <section class="prose prose-invert max-w-none text-dim">
+            <Content />
+        </section>
+    </article>
+</BaseLayout>

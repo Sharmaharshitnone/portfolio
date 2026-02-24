@@ -1,0 +1,160 @@
+---
+/**
+ * Navbar — Zero-JS Astro shell component.
+ * Mobile toggle + scroll shadow handled via lightweight <script>.
+ * Active path resolved server-side from Astro.url.pathname.
+ * Re-initialises on View Transition via astro:page-load.
+ */
+import { NAV_LINKS } from "../../lib/constants";
+
+const currentPath = Astro.url.pathname;
+---
+
+<header
+    id="site-nav"
+    class="sticky top-0 z-50 h-14 border-b border-border backdrop-blur-sm transition-shadow duration-200"
+    style="background-color: color-mix(in srgb, var(--bg) 80%, transparent);"
+>
+    <div class="container h-full flex items-center justify-between">
+        <a
+            href="/"
+            class="font-mono text-[13px] font-semibold tracking-tight text-foreground hover:text-dim transition-colors"
+            aria-label="Harshit Sharma — Home"
+        >
+            harshit.systems
+        </a>
+
+        <!-- Desktop Nav -->
+        <nav class="hidden md:flex items-center gap-0.5" aria-label="Main navigation">
+            {NAV_LINKS.map((link) => {
+                const isActive = link.href === "/"
+                    ? currentPath === "/"
+                    : currentPath.startsWith(link.href);
+                return (
+                    <a
+                        href={link.href}
+                        aria-current={isActive ? "page" : undefined}
+                        class:list={[
+                            "text-[13px] px-3 py-1.5 rounded-md transition-colors",
+                            isActive
+                                ? "text-foreground font-medium"
+                                : "text-dim hover:text-subtle",
+                        ]}
+                    >
+                        {link.label}
+                    </a>
+                );
+            })}
+        </nav>
+
+        <!-- Mobile hamburger -->
+        <button
+            id="mobile-menu-btn"
+            class="md:hidden p-2.5 text-dim hover:text-foreground transition-colors"
+            aria-label="Open navigation menu"
+            aria-expanded="false"
+            aria-controls="mobile-nav"
+        >
+            <!-- Menu icon (24x24 Lucide "Menu") -->
+            <svg id="icon-menu" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="4" x2="20" y1="12" y2="12"></line>
+                <line x1="4" x2="20" y1="6" y2="6"></line>
+                <line x1="4" x2="20" y1="18" y2="18"></line>
+            </svg>
+            <!-- X icon (24x24 Lucide "X") — hidden by default -->
+            <svg id="icon-close" class="h-5 w-5 hidden" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Mobile Nav Panel -->
+    <div
+        id="mobile-nav"
+        role="region"
+        aria-label="Mobile navigation"
+        class="md:hidden absolute top-14 left-0 w-full bg-background border-b border-border max-h-0 opacity-0 overflow-hidden transition-[max-height,opacity] duration-200"
+        aria-hidden="true"
+    >
+        <nav class="px-5 py-4 flex flex-col gap-1">
+            {NAV_LINKS.map((link) => {
+                 const isActive = link.href === "/"
+                    ? currentPath === "/"
+                    : currentPath.startsWith(link.href);
+                return (
+                    <a
+                        href={link.href}
+                        aria-current={isActive ? "page" : undefined}
+                        class:list={[
+                            "text-[15px] px-3 py-3 rounded-md transition-colors",
+                            isActive
+                                ? "text-foreground bg-surface font-medium"
+                                : "text-foreground hover:bg-surface",
+                        ]}
+                    >
+                        {link.label}
+                    </a>
+                );
+            })}
+        </nav>
+    </div>
+</header>
+
+<script is:inline>
+    function setupNav() {
+        const btn = document.getElementById("mobile-menu-btn");
+        const panel = document.getElementById("mobile-nav");
+        const iconMenu = document.getElementById("icon-menu");
+        const iconClose = document.getElementById("icon-close");
+        const header = document.getElementById("site-nav");
+        const sentinel = document.getElementById("nav-sentinel");
+
+        if (!btn || !panel || !iconMenu || !iconClose) return;
+
+        // Reset mobile menu to closed state on every page load
+        let isOpen = false;
+        panel.classList.add("max-h-0", "opacity-0");
+        panel.classList.remove("max-h-[320px]", "opacity-100");
+        panel.setAttribute("aria-hidden", "true");
+        btn.setAttribute("aria-expanded", "false");
+        iconMenu.classList.remove("hidden");
+        iconClose.classList.add("hidden");
+
+        // Clone + replace to remove stale listeners
+        const freshBtn = /** @type {HTMLElement} */ (btn.cloneNode(true));
+        btn.replaceWith(freshBtn);
+
+        freshBtn.addEventListener("click", function () {
+            isOpen = !isOpen;
+            panel.classList.toggle("max-h-0", !isOpen);
+            panel.classList.toggle("opacity-0", !isOpen);
+            panel.classList.toggle("max-h-[320px]", isOpen);
+            panel.classList.toggle("opacity-100", isOpen);
+            panel.setAttribute("aria-hidden", String(!isOpen));
+            freshBtn.setAttribute("aria-expanded", String(isOpen));
+            freshBtn.setAttribute(
+                "aria-label",
+                isOpen ? "Close navigation menu" : "Open navigation menu"
+            );
+            // Re-query icons after cloneNode
+            var menu = freshBtn.querySelector("#icon-menu");
+            var close = freshBtn.querySelector("#icon-close");
+            if (menu) menu.classList.toggle("hidden", isOpen);
+            if (close) close.classList.toggle("hidden", !isOpen);
+        });
+
+        // Scroll-driven shadow via IntersectionObserver
+        if (sentinel && header) {
+            new IntersectionObserver(
+                function (entries) {
+                    header.classList.toggle("shadow-sm", !entries[0].isIntersecting);
+                },
+                { root: null, threshold: 0 }
+            ).observe(sentinel);
+        }
+    }
+
+    // Runs on initial load + every View Transition swap
+    document.addEventListener("astro:page-load", setupNav);
+</script>

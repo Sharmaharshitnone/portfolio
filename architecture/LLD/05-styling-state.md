@@ -9,26 +9,22 @@
 
 @theme {
   /* ═══════════════ COLOR PALETTE ═══════════════ */
-  /* Dark theme (default) — Terminal/Neovim-inspired, GitHub Dark Dimmed base */
-  --color-bg-primary: #0d1117;          /* GitHub dark background */
-  --color-bg-secondary: #161b22;        /* Slightly lighter panels */
-  --color-bg-card: #1c2128;             /* Card surfaces */
-  --color-bg-hover: #262c36;            /* Hover states */
+  /* Colors use CSS var indirection — @theme maps to CSS custom props */
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-card: var(--card-bg);
+  --color-surface: var(--surface);
+  --color-dim: var(--dim);
+  --color-subtle: var(--subtle);
+  --color-faint: var(--faint);
+  --color-border: var(--border);
 
-  --color-text-primary: #e6edf3;        /* High-contrast body text */
-  --color-text-secondary: #8b949e;      /* Subdued text */
-  --color-text-muted: #6e7681;          /* Disabled / placeholder */
+  --color-accent: #58a6ff;              /* GitHub Blue — primary accent */
+  --color-accent-glow: #388bfd;         /* Accent hover */
 
-  --color-accent: #2dd4bf;              /* Teal — primary accent (terminal cursor) */
-  --color-accent-hover: #14b8a6;        /* Teal hover */
-  --color-accent-subtle: rgba(45, 212, 191, 0.1);  /* Teal glow backgrounds */
-
-  --color-success: #3fb950;             /* Green — builds pass */
-  --color-warning: #d29922;             /* Amber — caution badges */
-  --color-error: #f85149;               /* Red — error states */
-
-  --color-border: #30363d;              /* Subtle borders */
-  --color-border-hover: #484f58;        /* Active borders */
+  --color-diff-easy: #3fb950;           /* Green — easy difficulty */
+  --color-diff-medium: #d29922;         /* Amber — medium difficulty */
+  --color-diff-hard: #f85149;           /* Red — hard difficulty */
 
   /* ═══════════════ TYPOGRAPHY ═══════════════ */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
@@ -66,18 +62,30 @@
   --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-/* ═══════════════ LIGHT THEME OVERRIDES ═══════════════ */
-html:not(.dark) {
-  --color-bg-primary: #f6f8fa;          /* GitHub light background */
-  --color-bg-secondary: #eaeef2;
-  --color-bg-card: #ffffff;
-  --color-bg-hover: #d0d7de;
-  --color-text-primary: #1f2328;        /* Near-black text */
-  --color-text-secondary: #656d76;
-  --color-text-muted: #8c959f;
-  --color-accent: #0d9488;              /* Teal — darker for light bg contrast */
-  --color-accent-hover: #0f766e;
-  --color-border: #d0d7de;
+/* ═══════════════ DARK PALETTE (default / SSR fallback) — GitHub Dark Dimmed ═══════════════ */
+:root {
+  --bg: #0d1117;
+  --fg: #e6edf3;
+  --card-bg: #161b22;
+  --surface: #161b22;
+  --dim: #8b949e;
+  --subtle: #c9d1d9;
+  --faint: #484f58;
+  --border: #30363d;
+  --accent: #58a6ff;
+}
+
+/* ═══════════════ LIGHT THEME — data-theme attribute ═══════════════ */
+[data-theme="light"] {
+  --bg: #f6f8fa;
+  --fg: #1f2328;
+  --card-bg: #ffffff;
+  --surface: #f0f3f6;
+  --dim: #656d76;
+  --subtle: #31363b;
+  --faint: #8b949e;
+  --border: #d0d7de;
+  --accent: #0969da;
   --color-border-hover: #afb8c1;
   --color-shadow-card: 0 1px 3px rgba(31, 35, 40, 0.08);
   --color-shadow-hover: 0 4px 12px rgba(31, 35, 40, 0.12);
@@ -147,10 +155,24 @@ import { atom } from 'nanostores';
 
 // ═══════════════ PERSISTENT STATE ═══════════════
 // Survives page refreshes, view transitions, and browser sessions
-export const $theme = persistentAtom<'light' | 'dark' | 'system'>(
-  'harshit:theme',  // localStorage key
-  'system',         // default value
-);
+// SSR-safe: always start with 'dark' on the server.
+// The client FOUC script in BaseHead sets data-theme before hydration,
+// so the atom is only used for reactive UI (ThemeToggle icon state).
+export const $theme = atom<'dark' | 'light' | 'system'>('dark');
+
+/** Apply theme to DOM + persist to localStorage */
+export function applyTheme(theme: Theme): void {
+  $theme.set(theme);
+  localStorage.setItem('theme', theme);  // localStorage key: 'theme'
+  document.documentElement.setAttribute('data-theme', resolveTheme(theme));
+}
+
+/** Cycle: light → dark → system → light */
+export function cycleTheme(): void {
+  const current = $theme.get();
+  const next = current === 'light' ? 'dark' : current === 'dark' ? 'system' : 'light';
+  applyTheme(next);
+}
 
 // ═══════════════ TRANSIENT STATE ═══════════════
 // Resets on page navigation (unless using transition:persist)

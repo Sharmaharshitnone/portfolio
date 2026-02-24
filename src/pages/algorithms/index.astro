@@ -1,14 +1,13 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import Badge from "../../components/ui/Badge.astro";
+import AlgorithmRow from "../../components/domain/AlgorithmRow.astro";
+import { AlgoFilter } from "../../components/islands/AlgoFilter";
 import { getCollection } from "astro:content";
-import { Search, ArrowRight } from "lucide-preact";
 import { PLATFORM_NAMES } from "../../lib/constants";
 
 const algorithms = await getCollection("algorithms");
 const sortedAlgos = algorithms.sort(
-    (a, b) =>
-        new Date(b.data.solved).getTime() - new Date(a.data.solved).getTime()
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
 
 const stats = {
@@ -18,11 +17,9 @@ const stats = {
     hard: algorithms.filter((a) => a.data.difficulty === "hard").length,
 };
 
-const difficultyColors = {
-    easy: "#3fb950",
-    medium: "#d29922",
-    hard: "#f85149",
-};
+// Derive unique values for filter dropdowns
+const platforms = [...new Set(algorithms.map((a) => PLATFORM_NAMES[a.data.platform] ?? a.data.platform))];
+const difficulties = [...new Set(algorithms.map((a) => a.data.difficulty))];
 ---
 
 <BaseLayout title="Algorithms & CP | Harshit Sharma">
@@ -42,61 +39,29 @@ const difficultyColors = {
         {/* Stats */}
         <div class="flex flex-wrap gap-8 mb-12">
             <div class="flex flex-col gap-1">
-                <span class="text-foreground text-2xl font-mono"
-                    >{stats.total}
-                </span>
+                <span class="text-foreground text-2xl font-mono">{stats.total}</span>
                 <span class="text-faint text-xs">Total Solved</span>
             </div>
             <div class="flex flex-col gap-1">
-                <span class="text-[#3fb950] text-2xl font-mono"
-                    >{stats.easy}
-                </span>
+                <span class="text-[#3fb950] text-2xl font-mono">{stats.easy}</span>
                 <span class="text-faint text-xs">Easy</span>
             </div>
             <div class="flex flex-col gap-1">
-                <span class="text-[#d29922] text-2xl font-mono"
-                    >{stats.medium}
-                </span>
+                <span class="text-[#d29922] text-2xl font-mono">{stats.medium}</span>
                 <span class="text-faint text-xs">Medium</span>
             </div>
             <div class="flex flex-col gap-1">
-                <span class="text-[#f85149] text-2xl font-mono"
-                    >{stats.hard}
-                </span>
+                <span class="text-[#f85149] text-2xl font-mono">{stats.hard}</span>
                 <span class="text-faint text-xs">Hard</span>
             </div>
         </div>
 
-        {/* Controls */}
-        <div class="flex flex-col sm:flex-row items-center gap-4 mb-8">
-            <div class="relative w-full sm:w-64">
-                <Search
-                    class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-faint"
-                />
-                <input
-                    type="text"
-                    placeholder="Search problems..."
-                    class="w-full bg-background border border-border rounded-md pl-9 pr-4 py-2 text-[13px] font-mono text-foreground focus:border-accent transition-colors focus:outline-none placeholder:text-faint"
-                />
-            </div>
-            <div class="flex items-center gap-4 w-full sm:w-auto">
-                <select
-                    class="bg-background border border-border rounded-md px-3 py-2 text-[13px] text-faint focus:outline-none w-full sm:w-auto appearance-none pr-8"
-                >
-                    <option value="all">Difficulty</option>
-                    <option value="easy">Easy</option>
-                    <option value="medium">Medium</option>
-                    <option value="hard">Hard</option>
-                </select>
-                <select
-                    class="bg-background border border-border rounded-md px-3 py-2 text-[13px] text-faint focus:outline-none w-full sm:w-auto appearance-none pr-8"
-                >
-                    <option value="all">Platform</option>
-                    <option value="LC">LeetCode</option>
-                    <option value="CF">Codeforces</option>
-                </select>
-            </div>
-        </div>
+        {/* Controls — AlgoFilter Preact island (client:idle) */}
+        <AlgoFilter
+            client:idle
+            platforms={platforms}
+            difficulties={difficulties}
+        />
 
         {/* Table */}
         <div class="border border-border rounded-md bg-card overflow-hidden">
@@ -112,62 +77,16 @@ const difficultyColors = {
 
             <div class="divide-y divide-border">
                 {
-                    sortedAlgos.map((algo) => (
-                        <a
+                    sortedAlgos.map((algo, i) => (
+                        <AlgorithmRow
+                            title={algo.data.title}
+                            platform={algo.data.platform}
+                            difficulty={algo.data.difficulty}
+                            tags={algo.data.tags}
+                            pubDate={algo.data.pubDate}
                             href={`/algorithms/${algo.id}`}
-                            class="flex items-center text-sm px-4 py-3 hover:bg-surface transition-colors"
-                        >
-                            <div class="flex-1 flex items-center gap-3">
-                                <span
-                                    class="w-[6px] h-[6px] rounded-full shrink-0"
-                                    style={`background-color: ${
-                                        difficultyColors[
-                                            algo.data
-                                                .difficulty as keyof typeof difficultyColors
-                                        ]
-                                    }`}
-                                    aria-hidden="true"
-                                />
-                                <span class="text-subtle group-hover:text-foreground transition-colors font-medium">
-                                    {algo.data.title}
-                                </span>
-                            </div>
-                            <div class="w-24 hidden sm:block">
-                                <Badge variant="platform">
-                                    {algo.data.platform}
-                                </Badge>
-                            </div>
-                            <div class="w-24 hidden md:block">
-                                <span
-                                    style={`color: ${
-                                        difficultyColors[
-                                            algo.data
-                                                .difficulty as keyof typeof difficultyColors
-                                        ]
-                                    }`}
-                                    class="text-[13px]"
-                                >
-                                    <span class="capitalize">
-                                        {algo.data.difficulty}
-                                    </span>
-                                </span>
-                            </div>
-                            <div class="flex-1 max-w-[200px] hidden lg:flex flex-wrap gap-1.5 overflow-hidden h-5">
-                                {algo.data.tags
-                                    .slice(0, 3)
-                                    .map((tag: string) => (
-                                        <span class="text-[11px] font-mono text-badge-text bg-badge-bg px-1.5 py-0.5 rounded border border-badge-border">
-                                            {tag}
-                                        </span>
-                                    ))}
-                            </div>
-                            <div class="w-24 text-right flex justify-end gap-3 items-center">
-                                <span class="text-[11px] font-mono text-faint">
-                                    {algo.data.solved}
-                                </span>
-                                <ArrowRight class="w-3.5 h-3.5 text-faint shrink-0" />
-                            </div>
-                        </a>
+                            isFirst={i === 0}
+                        />
                     ))
                 }
             </div>

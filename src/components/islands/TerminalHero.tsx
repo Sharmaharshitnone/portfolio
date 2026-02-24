@@ -153,7 +153,6 @@ export function TerminalHero() {
             className="terminal-hero rounded-xl overflow-hidden border border-border relative"
             style={{
                 background: colors.bodyBg,
-                transform: "perspective(800px) rotateY(-5deg) rotateX(3deg) translateY(-6px)",
                 willChange: "transform",
                 boxShadow: colors.shadow,
             }}

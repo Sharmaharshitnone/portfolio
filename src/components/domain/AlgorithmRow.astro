@@ -1,0 +1,78 @@
+---
+/**
+ * AlgorithmRow — Table row for algorithm/CP problem listings.
+ * Zero JS. Renders as a clickable anchor row.
+ */
+import Badge from "../ui/Badge.astro";
+import { PLATFORM_NAMES } from "../../lib/constants";
+
+interface Props {
+    title: string;
+    platform: string;
+    difficulty: "easy" | "medium" | "hard" | "expert";
+    tags: string[];
+    pubDate: Date;
+    href: string;
+    isFirst?: boolean;
+}
+
+const { title, platform, difficulty, tags, pubDate, href, isFirst = false } = Astro.props;
+
+const difficultyColors: Record<string, string> = {
+    easy: "#3fb950",
+    medium: "#d29922",
+    hard: "#f85149",
+    expert: "#bc4a9b",
+};
+
+const color = difficultyColors[difficulty] ?? "#8b949e";
+const platformName = PLATFORM_NAMES[platform] ?? platform;
+---
+
+<a
+    href={href}
+    data-algo-row
+    data-title={title}
+    data-platform={platform}
+    data-difficulty={difficulty}
+    class:list={[
+        "flex items-center text-sm px-4 py-3 hover:bg-surface transition-colors",
+        !isFirst && "border-t border-border",
+    ]}
+>
+    <div class="flex-1 flex items-center gap-3">
+        <span
+            class="w-[6px] h-[6px] rounded-full shrink-0"
+            style={`background-color: ${color}`}
+            aria-hidden="true"
+        />
+        <span class="text-subtle font-medium">
+            {title}
+        </span>
+    </div>
+
+    <div class="w-24 hidden sm:block">
+        <Badge variant="platform">{platformName}</Badge>
+    </div>
+
+    <div class="w-24 hidden md:block">
+        <span style={`color: ${color}`} class="text-[13px] capitalize">
+            {difficulty}
+        </span>
+    </div>
+
+    <div class="flex-1 max-w-[200px] hidden lg:flex flex-wrap gap-1.5 overflow-hidden h-5">
+        {tags.slice(0, 3).map((tag) => (
+            <span class="text-[11px] font-mono text-badge-text bg-badge-bg px-1.5 py-0.5 rounded border border-badge-border">
+                {tag}
+            </span>
+        ))}
+    </div>
+
+    <div class="w-24 text-right flex justify-end gap-3 items-center">
+        <span class="text-[11px] font-mono text-faint">
+            {pubDate.toISOString().slice(0, 10)}
+        </span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-faint shrink-0" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    </div>
+</a>
