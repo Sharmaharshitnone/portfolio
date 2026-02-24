@@ -1,5 +1,6 @@
 ---
 title: "eBPF for Network Observability: A Practical Guide"
+summary: "Using eBPF to build kernel-level network monitoring without modifying application code. Attaching to tcp_sendmsg/tcp_recvmsg kprobes for per-process TCP throughput metrics with under 2% CPU overhead."
 type: "project"
 tags: ["linux", "ebpf", "networking", "observability"]
 mood: "learning"

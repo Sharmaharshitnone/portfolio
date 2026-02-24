@@ -1,5 +1,6 @@
 ---
 title: "My Neovim Setup for Rust Development in 2026"
+summary: "A walkthrough of my Neovim configuration optimized for Rust: rust-analyzer with custom clippy settings, nvim-dap for debugging, and crates.nvim for dependency management — a workflow that rivals any IDE."
 type: "daily"
 tags: ["neovim", "rust", "tooling", "dx"]
 mood: "productive"

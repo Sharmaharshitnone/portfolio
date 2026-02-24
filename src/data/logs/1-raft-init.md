@@ -1,5 +1,6 @@
 ---
 title: "Implementing Raft Consensus from Scratch in Rust"
+summary: "Building a production-grade distributed key-value store in Rust. Focused on leader election and heartbeat mechanisms using Tokio's async primitives, with an emphasis on correctness under network partitions."
 type: "project"
 tags: ["rust", "distributed-systems", "raft"]
 mood: "productive"

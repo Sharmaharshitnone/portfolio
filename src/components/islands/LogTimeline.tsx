@@ -118,14 +118,17 @@ export function LogTimeline({ logs, allTags }: Props) {
             </div>
 
             {/* Timeline */}
-            <div className="relative ml-2 sm:ml-4 border-l border-border pl-8 sm:pl-10 pb-12">
+            <div className="relative ml-2 sm:ml-4 pl-8 sm:pl-10 pb-12">
+                {/* Explicit vertical line — separate div for precise dot alignment */}
+                <div className="absolute left-0 top-0 bottom-0 w-px bg-border" aria-hidden="true" />
+
                 <div className="flex flex-col gap-10">
                     {filtered.map((log) => {
                         const isOpen = expandedId === log.id;
                         return (
-                            <div key={log.id} className="relative">
-                                {/* Branch dot */}
-                                <div className="absolute -left-[37px] sm:-left-[45px] top-1.5 w-[9px] h-[9px] rounded-full bg-foreground outline outline-4 outline-background" />
+                            <div key={log.id} className="relative group">
+                                {/* Branch dot — centered on the line via -translate-x-1/2 */}
+                                <div className="absolute -left-8 sm:-left-10 top-2 -translate-x-1/2 w-2.5 h-2.5 rounded-full bg-foreground ring-4 ring-background transition-shadow duration-200 group-hover:shadow-[0_0_10px_3px_var(--accent)]" />
 
                                 {/* Commit metadata line */}
                                 <div className="flex items-center gap-3 text-[11px] font-mono text-faint mb-2">
@@ -170,10 +173,10 @@ export function LogTimeline({ logs, allTags }: Props) {
 
                                 {/* Expanded content */}
                                 {isOpen && (
-                                    <div className="pl-6 mt-4 border-l-2 border-border ml-2 pl-6">
-                                        <div className="prose prose-portfolio max-w-none text-sm mb-4">
-                                            <p className="text-dim leading-[1.7]">{log.description}</p>
-                                        </div>
+                                    <div className="pl-6 mt-4 border-l-2 border-accent/40 ml-2 pl-6">
+                                        <p className="text-dim text-sm leading-[1.7] italic mb-4">
+                                            {log.description}
+                                        </p>
                                         <a
                                             href={log.href}
                                             className="inline-flex items-center gap-1.5 text-accent text-sm font-mono hover:underline"

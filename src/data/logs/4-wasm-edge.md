@@ -1,5 +1,6 @@
 ---
 title: "WebAssembly at the Edge: Running Rust in Cloudflare Workers"
+summary: "Benchmarking Rust-compiled WASM modules in edge compute. Key findings: 2.3ms cold start (vs 50ms+ Node.js), 128KB memory baseline, and 12K req/sec per worker at p99 < 5ms. WASM is unbeatable for compute-heavy edge logic."
 type: "project"
 tags: ["wasm", "rust", "edge-compute", "cloudflare"]
 mood: "breakthrough"

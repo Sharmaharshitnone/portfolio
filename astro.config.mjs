@@ -22,6 +22,18 @@ export default defineConfig({
         }),
     ],
 
+    markdown: {
+        shikiConfig: {
+            // Dual themes — CSS-driven, auto-switches with data-theme
+            themes: {
+                light: 'github-light',
+                dark: 'github-dark',
+            },
+            defaultColor: false,
+            wrap: false,
+        },
+    },
+
     vite: {
         plugins: [tailwindcss()],
         ssr: {

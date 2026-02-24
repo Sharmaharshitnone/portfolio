@@ -1,8 +1,10 @@
 ---
 import { ThemeToggle } from "../components/islands/ThemeToggle";
+import { SearchBar } from "../components/islands/SearchBar";
 import Navbar from "../components/global/Navbar.astro";
 import Footer from "../components/global/Footer.astro";
 import BaseHead from "../components/global/BaseHead.astro";
+import { getCollection } from "astro:content";
 import "../styles/global.css";
 
 interface Props {
@@ -17,6 +19,40 @@ const {
     description = "Senior Backend & Systems Engineer specializing in Rust, Go, and distributed systems.",
     ogImage,
 } = Astro.props;
+
+// ── Build search index at build time ──────────────────────
+const [logs, algorithms, projects] = await Promise.all([
+    getCollection("logs"),
+    getCollection("algorithms"),
+    getCollection("projects"),
+]);
+
+const searchItems = [
+    ...projects.map(p => ({
+        id: p.id,
+        title: p.data.title,
+        type: 'project' as const,
+        tags: p.data.techStack,
+        href: `/projects/${p.id}`,
+        meta: `${p.data.category} · ${p.data.techStack.join(', ')}`,
+    })),
+    ...algorithms.map(a => ({
+        id: a.id,
+        title: a.data.title,
+        type: 'algorithm' as const,
+        tags: a.data.tags,
+        href: `/algorithms/${a.id}`,
+        meta: `${a.data.platform} · ${a.data.difficulty} · ${a.data.tags.join(', ')}`,
+    })),
+    ...logs.map(l => ({
+        id: l.id,
+        title: l.data.title,
+        type: 'log' as const,
+        tags: l.data.tags,
+        href: `/logs/${l.id}`,
+        meta: `${l.data.type} · ${l.data.tags.join(', ')}`,
+    })),
+];
 ---
 
 <!doctype html>
@@ -38,14 +74,14 @@ const {
             Skip to content
         </a>
 
-        <!-- Navbar uses scroll-direction tracking (no sentinel needed) -->
-        <div class="relative">
-            <Navbar />
-            <!-- ThemeToggle: right-14 on mobile (clears hamburger), right-8 on desktop -->
-            <div class="fixed top-0 right-14 md:right-8 h-14 flex items-center z-[51]">
-                <ThemeToggle client:load />
-            </div>
+        <!-- Fixed navbar + controls -->
+        <Navbar />
+        <div class="fixed top-0 right-14 md:right-8 h-14 flex items-center gap-3 z-[51]">
+            <SearchBar client:load items={searchItems} />
+            <ThemeToggle client:load />
         </div>
+        <!-- Spacer for fixed header height -->
+        <div class="h-14" aria-hidden="true"></div>
 
         <main id="main-content" class="flex-1">
             <slot />

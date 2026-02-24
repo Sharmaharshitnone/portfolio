@@ -11,7 +11,7 @@ const currentPath = Astro.url.pathname;
 
 <header
     id="site-nav"
-    class="sticky top-0 z-50 h-14 border-b border-border backdrop-blur-sm transition-all duration-200"
+    class="fixed top-0 left-0 w-full z-50 h-14 border-b border-border backdrop-blur-sm transition-all duration-200"
     style="background-color: color-mix(in srgb, var(--bg) 80%, transparent);"
 >
     <div class="container h-full flex items-center justify-between">
@@ -96,7 +96,25 @@ const currentPath = Astro.url.pathname;
 </header>
 
 <script>
+    /**
+     * Smart Navbar — AbortController pattern for View Transitions.
+     *
+     * Problem: astro:page-load fires on every navigation. Each call to
+     * setupNav used to add a NEW scroll listener on `window` without
+     * removing the old one. After N navigations → N stale listeners
+     * referencing detached DOM nodes.
+     *
+     * Fix: A module-level AbortController is .abort()-ed before each
+     * re-initialisation, tearing down ALL prior listeners in one shot.
+     */
+    let navController: AbortController | null = null;
+
     function setupNav() {
+        // ── Tear down previous listeners ──
+        if (navController) navController.abort();
+        navController = new AbortController();
+        const { signal } = navController;
+
         const btn = document.getElementById("mobile-menu-btn");
         const panel = document.getElementById("mobile-nav");
         const iconMenu = document.getElementById("icon-menu");
@@ -105,7 +123,7 @@ const currentPath = Astro.url.pathname;
 
         if (!btn || !panel || !iconMenu || !iconClose || !header) return;
 
-        // Reset state
+        // ── Reset mobile menu state on navigation ──
         let isOpen = false;
         panel.classList.add("max-h-0", "opacity-0");
         panel.classList.remove("max-h-[320px]", "opacity-100");
@@ -114,11 +132,12 @@ const currentPath = Astro.url.pathname;
         iconMenu.classList.remove("hidden");
         iconClose.classList.add("hidden");
 
-        // Idempotency: Prevent duplicate listeners on View Transitions
-        if (btn.dataset.navInitialized === "true") return;
-        btn.dataset.navInitialized = "true";
+        // ── Reset navbar position (visible, no shadow if at top) ──
+        header.style.transform = "translateY(0)";
+        if (window.scrollY <= 0) header.classList.remove("shadow-sm");
 
-        btn.addEventListener("click", function () {
+        // ── Mobile menu toggle ──
+        btn.addEventListener("click", () => {
             isOpen = !isOpen;
             panel.classList.toggle("max-h-0", !isOpen);
             panel.classList.toggle("opacity-0", !isOpen);
@@ -127,28 +146,27 @@ const currentPath = Astro.url.pathname;
             panel.setAttribute("aria-hidden", String(!isOpen));
             btn.setAttribute("aria-expanded", String(isOpen));
             btn.setAttribute("aria-label", isOpen ? "Close navigation menu" : "Open navigation menu");
-            
             iconMenu.classList.toggle("hidden", isOpen);
             iconClose.classList.toggle("hidden", !isOpen);
-        });
+        }, { signal });
 
-        // ── Smart navbar: hide on scroll-down, show on scroll-up ──
+        // ── Smart scroll: hide ↓, show ↑ ──
         let lastScrollY = window.scrollY;
         let ticking = false;
-        const SCROLL_THRESHOLD = 10; // px dead-zone to prevent micro-jitter
+        const THRESHOLD = 10; // px dead-zone
 
         function onScroll() {
-            const currentY = window.scrollY;
-            const delta = currentY - lastScrollY;
+            const y = window.scrollY;
+            const delta = y - lastScrollY;
 
-            if (currentY <= 0) {
-                // At very top — always show, remove shadow
+            if (y <= 0) {
                 header.style.transform = "translateY(0)";
                 header.classList.remove("shadow-sm");
-            } else if (delta > SCROLL_THRESHOLD) {
-                // Scrolling DOWN — hide navbar
+                lastScrollY = y;
+            } else if (delta > THRESHOLD) {
+                // Scrolling DOWN → hide
                 header.style.transform = "translateY(-100%)";
-                // Also close mobile menu if open
+                lastScrollY = y;
                 if (isOpen) {
                     isOpen = false;
                     panel.classList.add("max-h-0", "opacity-0");
@@ -158,23 +176,25 @@ const currentPath = Astro.url.pathname;
                     iconMenu.classList.remove("hidden");
                     iconClose.classList.add("hidden");
                 }
-            } else if (delta < -SCROLL_THRESHOLD) {
-                // Scrolling UP — show navbar with shadow
+            } else if (delta < -THRESHOLD) {
+                // Scrolling UP → show
                 header.style.transform = "translateY(0)";
                 header.classList.add("shadow-sm");
+                lastScrollY = y;
             }
+            // Dead-zone: don't update lastScrollY so small movements accumulate
 
-            lastScrollY = currentY;
             ticking = false;
         }
 
-        window.addEventListener("scroll", function () {
+        window.addEventListener("scroll", () => {
             if (!ticking) {
                 requestAnimationFrame(onScroll);
                 ticking = true;
             }
-        }, { passive: true });
+        }, { passive: true, signal });
     }
 
+    // Fires on initial load AND after every View Transition navigation.
     document.addEventListener("astro:page-load", setupNav);
 </script>

@@ -209,6 +209,37 @@
         --tw-prose-th-borders:    var(--border);
         --tw-prose-td-borders:    var(--border);
     }
+
+    /*
+     * Shiki dual-theme switching.
+     * astro.config.mjs sets themes: { light, dark } with defaultColor: false.
+     * Shiki emits --shiki-light / --shiki-dark CSS vars on each token.
+     * We pick the right one based on data-theme.
+     */
+    :root .astro-code,
+    :root .astro-code span {
+        color: var(--shiki-dark) !important;
+        background-color: var(--shiki-dark-bg) !important;
+    }
+    [data-theme="light"] .astro-code,
+    [data-theme="light"] .astro-code span {
+        color: var(--shiki-light) !important;
+        background-color: var(--shiki-light-bg) !important;
+    }
+
+    /*
+     * Code blocks — clean styling, left-aligned, bounded width.
+     */
+    .prose pre {
+        width: fit-content;
+        min-width: min(100%, 420px);
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: auto;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        overflow-x: auto;
+    }
 }
 
 /* ── Reduced motion ──────────────────────────────────────── */
