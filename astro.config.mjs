@@ -27,7 +27,7 @@ export default defineConfig({
         ssr: {
             // @resvg/resvg-js uses native .node binaries — must be external
             // for Rollup bundling. Only used at build time for OG image generation.
-            external: ['@resvg/resvg-js'],
+            external: ['@resvg/resvg-js','node:fs', 'node:path'],
         },
     },
 
