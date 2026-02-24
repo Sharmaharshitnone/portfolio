@@ -1,12 +1,49 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import LogItem from "../../components/domain/LogItem.astro";
-import { getCollection } from "astro:content";
+import { LogTimeline } from "../../components/islands/LogTimeline";
+import { getCollection, render } from "astro:content";
 
 const logs = await getCollection("logs");
 const sortedLogs = logs.sort(
     (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
+
+// Derive all unique tags from actual content
+const allTags = [...new Set(sortedLogs.flatMap((l) => l.data.tags))].sort();
+
+// Generate a deterministic commit hash from id + date
+function fakeHash(input: string): string {
+    let hash = 0;
+    for (let i = 0; i < input.length; i++) {
+        const ch = input.charCodeAt(i);
+        hash = ((hash << 5) - hash) + ch;
+        hash |= 0;
+    }
+    return Math.abs(hash).toString(16).padStart(7, '0').slice(0, 7);
+}
+
+// Get first paragraph of rendered markdown as description
+async function getDescription(log: typeof sortedLogs[number]): Promise<string> {
+    // Use the raw body if available, otherwise fall back to title
+    const body = log.body ?? '';
+    // Extract first non-empty line that isn't a code block
+    const lines = body.split('\n').filter(l => l.trim() && !l.startsWith('```') && !l.startsWith('#'));
+    return lines[0]?.trim().slice(0, 200) ?? log.data.title;
+}
+
+// Serialise logs for the island
+const serialised = await Promise.all(sortedLogs.map(async (log) => ({
+    id: log.id,
+    title: log.data.title,
+    description: await getDescription(log),
+    type: log.data.type,
+    tags: log.data.tags,
+    mood: log.data.mood,
+    hoursWorked: log.data.hoursWorked,
+    pubDate: log.data.pubDate.toISOString(),
+    href: `/logs/${log.id}`,
+    commitHash: fakeHash(log.id + log.data.pubDate.toISOString()),
+})));
 ---
 
 <BaseLayout title="Engineering Logs | Harshit Sharma">
@@ -18,49 +55,14 @@ const sortedLogs = logs.sort(
                 Engineering Logs
             </h1>
             <p class="text-dim text-[15px] max-w-2xl leading-relaxed">
-                Daily notes, system design thoughts, and active challenges I'm
-                solving.
+                Daily notes, architecture decisions, and deep dives.
             </p>
         </header>
 
-        {/* Tags Filter */}
-        <div
-            class="flex items-center gap-2 mb-16 overflow-x-auto pb-2 scrollbar-none"
-        >
-            <button
-                class="bg-foreground text-background text-[11px] font-mono px-3 py-1.5 rounded-md shrink-0"
-                >all</button
-            >
-            {
-                ["rust", "distributed-systems", "ebpf", "performance"].map(
-                    (tag) => (
-                        <button class="text-faint hover:text-dim border border-border text-[11px] font-mono px-3 py-1.5 rounded-md transition-colors shrink-0">
-                            {tag}
-                        </button>
-                    )
-                )
-            }
-        </div>
-
-        {/* Timeline Layout */}
-        <div
-            class="relative ml-2 sm:ml-4 border-l border-border pl-8 sm:pl-10 pb-12"
-        >
-            <div class="flex flex-col gap-12">
-                {
-                    sortedLogs.map((log) => (
-                        <LogItem
-                            title={log.data.title}
-                            pubDate={log.data.pubDate}
-                            type={log.data.type}
-                            tags={log.data.tags}
-                            mood={log.data.mood}
-                            hoursWorked={log.data.hoursWorked}
-                            href={`/logs/${log.id}`}
-                        />
-                    ))
-                }
-            </div>
-        </div>
+        <LogTimeline
+            client:load
+            logs={serialised}
+            allTags={allTags}
+        />
     </div>
 </BaseLayout>

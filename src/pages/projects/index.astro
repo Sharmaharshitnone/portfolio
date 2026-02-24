@@ -1,11 +1,25 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import SectionHeading from "../../components/ui/SectionHeading.astro";
-import ProjectCard from "../../components/domain/ProjectCard.astro";
+import { ProjectFilter } from "../../components/islands/ProjectFilter";
 import { getCollection } from "astro:content";
 
 const projects = await getCollection("projects");
 const sortedProjects = projects.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Derive categories from actual content (not hardcoded)
+const categories = [...new Set(sortedProjects.map((p) => p.data.category))].sort();
+
+// Serialise for the island (Preact can't receive Date objects)
+const serialised = sortedProjects.map((p) => ({
+    title: p.data.title,
+    description: p.data.description,
+    category: p.data.category,
+    techStack: p.data.techStack,
+    githubUrl: p.data.githubUrl,
+    liveUrl: p.data.liveUrl,
+    pubDate: p.data.pubDate.toISOString(),
+    href: `/projects/${p.id}`,
+}));
 ---
 
 <BaseLayout title="Projects | Harshit Sharma">
@@ -22,45 +36,10 @@ const sortedProjects = projects.sort((a, b) => b.data.pubDate.valueOf() - a.data
             </p>
         </header>
 
-        {/* Filter Bar */}
-        <div
-            class="flex items-center gap-2 mb-10 overflow-x-auto pb-2 scrollbar-none"
-        >
-            <div
-                class="p-2 text-faint border border-border rounded-md shrink-0 bg-card"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-            </div>
-            <div class="flex items-center gap-2">
-                <button
-                    class="bg-foreground text-background text-[13px] font-mono px-3 py-1.5 rounded-md shrink-0"
-                    >all</button
-                >
-                {
-                    ["systems", "web", "data", "devops", "tools"].map((cat) => (
-                        <button class="text-faint hover:text-dim border border-border text-[13px] font-mono px-3 py-1.5 rounded-md transition-colors shrink-0">
-                            {cat}
-                        </button>
-                    ))
-                }
-            </div>
-        </div>
-
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {
-                sortedProjects.map((project) => (
-                    <ProjectCard
-                        title={project.data.title}
-                        description={project.data.description}
-                        category={project.data.category}
-                        techStack={project.data.techStack}
-                        githubUrl={project.data.githubUrl}
-                        liveUrl={project.data.liveUrl}
-                        pubDate={project.data.pubDate}
-                        href={`/projects/${project.id}`}
-                    />
-                ))
-            }
-        </div>
+        <ProjectFilter
+            client:load
+            projects={serialised}
+            categories={categories}
+        />
     </div>
 </BaseLayout>

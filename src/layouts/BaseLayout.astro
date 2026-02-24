@@ -38,17 +38,7 @@ const {
             Skip to content
         </a>
 
-        <!-- Sentinel for IntersectionObserver to detect scroll state without binding to scroll events -->
-        <div
-            id="nav-sentinel"
-            class="absolute top-0 left-0 w-full h-2 pointer-events-none select-none"
-            aria-hidden="true"
-        >
-        </div>
-
-        <!--
-          Header: Navbar (.astro shell) + ThemeToggle (Preact island, sibling).
-        -->
+        <!-- Navbar uses scroll-direction tracking (no sentinel needed) -->
         <div class="relative">
             <Navbar />
             <!-- ThemeToggle: right-14 on mobile (clears hamburger), right-8 on desktop -->

@@ -1,13 +1,15 @@
 @import "tailwindcss";
 
-/* ── Self-hosted fonts ── */
+/* ── Self-hosted fonts ───────────────────────────────────── */
 @font-face {
     font-family: 'Inter';
     src: url('/fonts/inter-var-latin.woff2') format('woff2');
     font-weight: 100 900;
     font-style: normal;
     font-display: swap;
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+        U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC,
+        U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
@@ -16,120 +18,137 @@
     font-weight: 400 700;
     font-style: normal;
     font-display: swap;
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* Tailwind v4: data-attribute dark mode */
-@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
-
-@theme {
-    --color-background: var(--bg);
-    --color-foreground: var(--fg);
-    --color-card: var(--card-bg);
-    --color-card-foreground: var(--fg);
-    --color-muted: var(--card-bg);
-    --color-muted-foreground: var(--dim);
-    --color-border: var(--border);
-    --color-ring: var(--accent);
-    --color-destructive: #f85149;
-
-    --color-surface: var(--surface);
-    --color-surface-raised: var(--surface-raised);
-    --color-dim: var(--dim);
-    --color-subtle: var(--subtle);
-    --color-faint: var(--faint);
-    --color-line: var(--border);
-    --color-line-strong: var(--border-strong);
-
-    --color-accent: #58a6ff;
-    --color-accent-glow: #388bfd;
-
-    --color-diff-easy: #3fb950;
-    --color-diff-medium: #d29922;
-    --color-diff-hard: #f85149;
-
-    --color-badge-bg: var(--badge-bg);
-    --color-badge-border: var(--badge-border);
-    --color-badge-text: var(--badge-text);
-
-    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-    --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
-
-    --radius: 6px;
-    --radius-sm: 4px;
-    --radius-md: 6px;
-    --radius-lg: 8px;
-    --radius-xl: 12px;
-}
-
-/* ── Dark palette (default / SSR fallback) — GitHub Dark Dimmed exact ── */
-:root {
-    --bg: #0d1117;
-    --fg: #e6edf3;
-    --card-bg: #161b22;
-    --surface: #161b22;
-    --surface-raised: #1c2128;
-    --dim: #8b949e;
-    --subtle: #c9d1d9;
-    --faint: #484f58;
-    --border: #30363d;
-    --border-strong: #484f58;
-    --accent: #58a6ff;
-    --badge-bg: #21262d;
-    --badge-border: #30363d;
-    --badge-text: #c9d1d9;
-}
-
-/* ── Light theme — applied when data-theme="light" is on <html> ── */
-[data-theme="light"] {
-    --bg: #f6f8fa;
-    --fg: #1f2328;
-    --card-bg: #ffffff;
-    --surface: #f0f3f6;
-    --surface-raised: #e8ecf0;
-    --dim: #656d76;
-    --subtle: #31363b;
-    --faint: #8b949e;
-    --border: #d0d7de;
-    --border-strong: #b1bac4;
-    --accent: #0969da;
-    --badge-bg: #eaeef2;
-    --badge-border: #d0d7de;
-    --badge-text: #24292f;
-}
-
-/* ── Dark theme explicit (matches :root) ── */
+/* ── Design tokens (raw CSS vars) ────────────────────────── */
+:root,
 [data-theme="dark"] {
-    --bg: #0d1117;
-    --fg: #e6edf3;
-    --card-bg: #161b22;
-    --surface: #161b22;
-    --surface-raised: #1c2128;
-    --dim: #8b949e;
-    --subtle: #c9d1d9;
-    --faint: #484f58;
-    --border: #30363d;
-    --border-strong: #484f58;
-    --accent: #58a6ff;
-    --badge-bg: #21262d;
-    --badge-border: #30363d;
-    --badge-text: #c9d1d9;
+    --bg:              #0d1117;
+    --fg:              #e6edf3;
+    --card:            #161b22;
+    --surface:         #161b22;
+    --surface-raised:  #1c2129;
+    --dim:             #8b949e;
+    --subtle:          #c9d1d9;
+    --faint:           #484f58;
+    --border:          #30363d;
+    --border-strong:   #484f58;
+    --accent:          #58a6ff;
+    --badge-bg:        #21262d;
+    --badge-border:    #30363d;
+    --badge-text:      #c9d1d9;
+
+    /* Terminal hero — CSS-driven theming (no JS sync needed) */
+    --terminal-prompt-user:  #3fb950;
+    --terminal-separator:    #7d8590;
+    --terminal-path:         #58a6ff;
+    --terminal-command:      #e6edf3;
+    --terminal-output:       #d2dae4;
+    --terminal-cursor:       #00e5a0;
+    --terminal-header-bg:    rgba(22, 27, 34, 0.9);
+    --terminal-body-bg:      linear-gradient(145deg, #0a0e14 0%, #0d1117 50%, #0f1318 100%);
+    --terminal-title-text:   #7d8590;
+    --terminal-shadow:
+        0 0 0 1px rgba(0, 229, 160, 0.12),
+        0 16px 50px rgba(0, 0, 0, 0.7),
+        0 40px 100px rgba(0, 0, 0, 0.5),
+        0 0 120px rgba(0, 229, 160, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
+[data-theme="light"] {
+    --bg:              #ffffff;
+    --fg:              #1f2328;
+    --card:            #f6f8fa;
+    --surface:         #f0f3f6;
+    --surface-raised:  #e8ecf0;
+    --dim:             #656d76;
+    --subtle:          #31363b;
+    --faint:           #8b949e;
+    --border:          #d0d7de;
+    --border-strong:   #8b949e;
+    --accent:          #0969da;
+    --badge-bg:        #eaeef2;
+    --badge-border:    #d0d7de;
+    --badge-text:      #31363b;
+
+    /* Terminal hero — light variant */
+    --terminal-prompt-user:  #1a7f37;
+    --terminal-separator:    #57606a;
+    --terminal-path:         #0969da;
+    --terminal-command:      #24292f;
+    --terminal-output:       #24292f;
+    --terminal-cursor:       #116329;
+    --terminal-header-bg:    rgba(226, 232, 240, 0.9);
+    --terminal-body-bg:      linear-gradient(145deg, #ffffff 0%, #f6f8fa 50%, #ffffff 100%);
+    --terminal-title-text:   #57606a;
+    --terminal-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.08),
+        0 16px 50px rgba(0, 0, 0, 0.08),
+        0 40px 100px rgba(0, 0, 0, 0.04),
+        0 0 120px rgba(0, 150, 100, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/*
+ * ── Tailwind v4 @theme ──────────────────────────────────────
+ * Maps raw CSS vars → Tailwind utility class names.
+ *
+ * bg-background  → var(--bg)
+ * text-foreground → var(--fg)
+ * text-dim        → var(--dim)
+ * text-faint      → var(--faint)
+ * text-subtle     → var(--subtle)
+ * bg-card         → var(--card)
+ * bg-surface      → var(--surface)
+ * border-border   → var(--border)
+ * etc.
+ *
+ * `inline` keyword: vars resolve dynamically (not inlined at build).
+ */
+@theme inline {
+    --color-background:     var(--bg);
+    --color-foreground:     var(--fg);
+    --color-card:           var(--card);
+    --color-card-foreground: var(--fg);
+    --color-surface:        var(--surface);
+    --color-surface-raised: var(--surface-raised);
+    --color-dim:            var(--dim);
+    --color-subtle:         var(--subtle);
+    --color-faint:          var(--faint);
+    --color-border:         var(--border);
+    --color-border-strong:  var(--border-strong);
+    --color-accent:         var(--accent);
+    --color-badge-bg:       var(--badge-bg);
+    --color-badge-border:   var(--badge-border);
+    --color-badge-text:     var(--badge-text);
+    --color-ring:           var(--accent);
+
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
+}
+
+/* ── Base layer ──────────────────────────────────────────── */
 @layer base {
+    html {
+        scroll-behavior: smooth;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
     body {
         background-color: var(--bg);
         color: var(--fg);
-        @apply font-sans antialiased;
     }
 
     ::selection {
-        background: rgba(88, 166, 255, 0.25);
+        background-color: rgba(88, 166, 255, 0.25);
     }
 
     :focus-visible {
         outline: 2px solid var(--accent);
         outline-offset: 2px;
+        border-radius: 2px;
     }
 
     :focus:not(:focus-visible) {
@@ -137,161 +156,67 @@
     }
 }
 
-/* ── Container: full-width % padding, no max-width ── */
+/*
+ * ── Container override ──────────────────────────────────────
+ * Must be @layer components (same layer as Tailwind's container)
+ * to properly override. Uses clamp() for fluid padding.
+ */
+@utility container {
+    width: 100%;
+    max-width: none;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: clamp(1.25rem, 5vw, 6rem);
+    padding-right: clamp(1.25rem, 5vw, 6rem);
+}
+
+/* ── Utilities ───────────────────────────────────────────── */
 @layer utilities {
-    .container {
-        width: 100%;
-        padding-left: 5%;
-        padding-right: 5%;
+    .scrollbar-none {
+        scrollbar-width: none;
+    }
+    .scrollbar-none::-webkit-scrollbar {
+        display: none;
     }
 
-    @media (min-width: 640px) {
-        .container {
-            padding-left: 6%;
-            padding-right: 6%;
-        }
+    /* Terminal theme transition — CSS handles switching, no JS needed */
+    .terminal-hero {
+        transition:
+            background 0.3s ease,
+            box-shadow 0.3s ease;
+    }
+    .terminal-hero span,
+    .terminal-hero div {
+        transition: color 0.3s ease, background-color 0.3s ease;
+    }
+
+    /* Prose color overrides for markdown content pages */
+    .prose-portfolio {
+        --tw-prose-body:          var(--dim);
+        --tw-prose-headings:      var(--fg);
+        --tw-prose-lead:          var(--dim);
+        --tw-prose-links:         var(--accent);
+        --tw-prose-bold:          var(--subtle);
+        --tw-prose-counters:      var(--faint);
+        --tw-prose-bullets:       var(--faint);
+        --tw-prose-hr:            var(--border);
+        --tw-prose-quotes:        var(--fg);
+        --tw-prose-quote-borders: var(--border);
+        --tw-prose-captions:      var(--faint);
+        --tw-prose-code:          var(--subtle);
+        --tw-prose-pre-code:      var(--fg);
+        --tw-prose-pre-bg:        var(--card);
+        --tw-prose-th-borders:    var(--border);
+        --tw-prose-td-borders:    var(--border);
     }
 }
 
+/* ── Reduced motion ──────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-
-    *,
-    *::before,
-    *::after {
+    *, *::before, *::after {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
-    }
-}
-
-/* ── Prose: markdown content styling ── */
-@layer base {
-    .prose {
-        line-height: 1.75;
-        font-size: 15px;
-    }
-
-    .prose h1,
-    .prose h2,
-    .prose h3,
-    .prose h4 {
-        color: var(--fg);
-        font-weight: 500;
-        letter-spacing: -0.01em;
-        margin-top: 2em;
-        margin-bottom: 0.75em;
-    }
-
-    .prose h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); }
-    .prose h2 { font-size: clamp(1.25rem, 3vw, 1.75rem); }
-    .prose h3 { font-size: 1.125rem; }
-
-    .prose p {
-        color: var(--dim);
-        margin-bottom: 1.25em;
-    }
-
-    .prose a {
-        color: var(--accent);
-        text-decoration: underline;
-        text-underline-offset: 2px;
-        transition: color 150ms ease;
-    }
-
-    .prose a:hover {
-        color: var(--fg);
-    }
-
-    .prose strong {
-        color: var(--fg);
-        font-weight: 600;
-    }
-
-    .prose ul,
-    .prose ol {
-        color: var(--dim);
-        padding-left: 1.5em;
-        margin-bottom: 1.25em;
-    }
-
-    .prose ul { list-style-type: disc; }
-    .prose ol { list-style-type: decimal; }
-
-    .prose li {
-        margin-bottom: 0.5em;
-    }
-
-    .prose li::marker {
-        color: var(--faint);
-    }
-
-    .prose blockquote {
-        border-left: 3px solid var(--border);
-        padding-left: 1em;
-        color: var(--dim);
-        font-style: italic;
-        margin: 1.5em 0;
-    }
-
-    .prose code {
-        font-family: var(--font-mono);
-        font-size: 0.875em;
-        background: var(--surface);
-        padding: 0.15em 0.4em;
-        border-radius: 4px;
-        color: var(--subtle);
-    }
-
-    .prose pre {
-        background: #010409;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 1rem 1.25rem;
-        overflow-x: auto;
-        margin: 1.5em 0;
-        font-size: 13px;
-        line-height: 1.6;
-    }
-
-    .prose pre code {
-        background: none;
-        padding: 0;
-        border-radius: 0;
-        color: var(--subtle);
-    }
-
-    .prose hr {
-        border: none;
-        border-top: 1px solid var(--border);
-        margin: 2em 0;
-    }
-
-    .prose table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 14px;
-        margin: 1.5em 0;
-    }
-
-    .prose th {
-        text-align: left;
-        font-weight: 500;
-        color: var(--fg);
-        border-bottom: 1px solid var(--border);
-        padding: 0.75em 1em;
-    }
-
-    .prose td {
-        border-bottom: 1px solid #21262d;
-        padding: 0.75em 1em;
-        color: var(--dim);
-    }
-
-    .prose img {
-        border-radius: 8px;
-        border: 1px solid var(--border);
-        margin: 1.5em 0;
-        max-width: 100%;
     }
 }

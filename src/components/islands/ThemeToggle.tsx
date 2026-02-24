@@ -1,6 +1,6 @@
 import { useStore } from '@nanostores/preact';
 import { useEffect } from 'preact/hooks';
-import { $theme, applyTheme, cycleTheme, type Theme } from '../../store/uiStore';
+import { $theme, applyTheme, cycleTheme, THEME_KEY, type Theme } from '../../store/uiStore';
 
 function SunIcon({ class: cls }: { class?: string }) {
   return (
@@ -28,30 +28,26 @@ const ICON_MAP: Record<Theme, preact.ComponentType<{ class?: string }>> = {
 
 const LABEL_MAP: Record<Theme, string> = {
   light: 'Light mode — click for dark',
-  dark: 'Dark mode — click for system',
-  system: 'System mode — click for light',
+  dark: 'Dark mode — click for light',
+  system: 'System mode — click to toggle theme',
 };
 
 export function ThemeToggle() {
   const theme = useStore($theme);
   const Icon = ICON_MAP[theme];
 
-  // Sync atom from localStorage on mount AND after every View Transition swap.
-  // This ensures the icon matches the persisted theme even after soft navigation.
+  // On mount, sync the atom from localStorage so the icon is correct.
+  // View-transition re-sync is handled at the store level (uiStore.ts)
+  // to avoid listener accumulation from island re-hydrations.
   useEffect(() => {
-    function syncFromStorage() {
-      const stored = localStorage.getItem('theme') as Theme | null;
-      if (stored === 'dark' || stored === 'light' || stored === 'system') {
-        $theme.set(stored);
-      } else {
-        // First visit — detect OS preference, persist it
-        const resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        applyTheme(resolved);
-      }
+    const stored = localStorage.getItem(THEME_KEY) as Theme | null;
+    if (stored === 'dark' || stored === 'light' || stored === 'system') {
+      $theme.set(stored);
+    } else {
+      // First visit — detect OS preference, persist it
+      const resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      applyTheme(resolved);
     }
-    syncFromStorage();
-    document.addEventListener('astro:after-swap', syncFromStorage);
-    return () => document.removeEventListener('astro:after-swap', syncFromStorage);
   }, []);
 
   return (

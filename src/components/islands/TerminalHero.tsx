@@ -53,7 +53,16 @@ function buildFrames(): Frame[] {
 
 const FRAMES = buildFrames();
 
+/**
+ * All terminal colours are driven by CSS custom properties (--terminal-*)
+ * defined in global.css under [data-theme="dark"] and [data-theme="light"].
+ * When BaseHead's inline script flips data-theme, the browser recalculates
+ * every var() reference instantly — no JS sync, no nanostore, no hydration
+ * mismatch. This sidesteps Astro issue #8781 entirely.
+ */
+
 export function TerminalHero() {
+
     const [frameIdx, setFrameIdx] = useState(0);
     const [cursorVisible, setCursorVisible] = useState(true);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -100,26 +109,6 @@ export function TerminalHero() {
 
     const currentFrame = FRAMES[frameIdx];
 
-    // Dark-only terminal colors
-    const colors = {
-        promptUser: "#3fb950",
-        separator: "#7d8590",
-        path: "#58a6ff",
-        command: "#e6edf3",
-        output: "#d2dae4",
-        cursor: "#00e5a0",
-        headerBg: "rgba(22, 27, 34, 0.9)",
-        bodyBg: "linear-gradient(145deg, #0a0e14 0%, #0d1117 50%, #0f1318 100%)",
-        titleText: "#7d8590",
-        shadow: [
-            "0 0 0 1px rgba(0, 229, 160, 0.12)",
-            "0 16px 50px rgba(0, 0, 0, 0.7)",
-            "0 40px 100px rgba(0, 0, 0, 0.5)",
-            "0 0 120px rgba(0, 229, 160, 0.15)",
-            "inset 0 1px 0 rgba(255,255,255,0.05)",
-        ].join(", "),
-    };
-
     const renderPromptLine = (text: string, showCursor: boolean) => {
         const promptEnd = text.indexOf("$") + 1;
         const prefix = text.slice(0, promptEnd);
@@ -128,16 +117,16 @@ export function TerminalHero() {
 
         return (
             <div className="font-mono text-[13px] leading-relaxed break-words whitespace-pre-wrap">
-                <span style={{ color: colors.promptUser }}>{userHost}</span>
-                <span style={{ color: colors.separator }}>:</span>
-                <span style={{ color: colors.path }}>~</span>
-                <span style={{ color: colors.command }}>$ </span>
-                <span style={{ color: colors.command }}>{command}</span>
+                <span style={{ color: 'var(--terminal-prompt-user)' }}>{userHost}</span>
+                <span style={{ color: 'var(--terminal-separator)' }}>:</span>
+                <span style={{ color: 'var(--terminal-path)' }}>~</span>
+                <span style={{ color: 'var(--terminal-command)' }}>$ </span>
+                <span style={{ color: 'var(--terminal-command)' }}>{command}</span>
                 {showCursor && (
                     <span
                         className="inline-block w-[7px] h-[1.15em] align-middle ml-[1px]"
                         style={{
-                            backgroundColor: colors.cursor,
+                            backgroundColor: 'var(--terminal-cursor)',
                             opacity: cursorVisible ? 1 : 0,
                         }}
                         aria-hidden="true"
@@ -152,16 +141,16 @@ export function TerminalHero() {
             ref={containerRef}
             className="terminal-hero rounded-xl overflow-hidden border border-border relative"
             style={{
-                background: colors.bodyBg,
-                willChange: "transform",
-                boxShadow: colors.shadow,
+                background: 'var(--terminal-body-bg)',
+                willChange: 'transform',
+                boxShadow: 'var(--terminal-shadow)',
             }}
             aria-hidden="true"
         >
             {/* Title Bar */}
             <div
                 className="flex items-center px-4 py-2.5 border-b border-border"
-                style={{ background: colors.headerBg }}
+                style={{ background: 'var(--terminal-header-bg)' }}
             >
                 <div className="flex gap-2 mr-4">
                     <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
@@ -170,7 +159,7 @@ export function TerminalHero() {
                 </div>
                 <span
                     className="text-xs font-mono flex-1 text-center -ml-12"
-                    style={{ color: colors.titleText }}
+                    style={{ color: 'var(--terminal-title-text)' }}
                 >
                     harshit@arch: ~
                 </span>
@@ -188,7 +177,7 @@ export function TerminalHero() {
                         ) : (
                             <div
                                 className="font-mono text-[13px] leading-relaxed whitespace-pre-wrap"
-                                style={{ color: colors.output }}
+                                style={{ color: 'var(--terminal-output)' }}
                             >
                                 {line.text}
                             </div>

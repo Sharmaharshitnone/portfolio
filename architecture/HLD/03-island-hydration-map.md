@@ -19,6 +19,9 @@ graph TD
 
     subgraph Islands ["🏝️ Interactive Islands (JS)"]
         TT["ThemeToggle.tsx<br/>client:load<br/>~2KB"]
+        TH["TerminalHero.tsx<br/>client:load<br/>~4KB"]
+        PF["ProjectFilter.tsx<br/>client:load<br/>~3KB"]
+        LT["LogTimeline.tsx<br/>client:load<br/>~4KB"]
         CF["ContactForm.tsx<br/>client:visible<br/>~8KB"]
         AF["AlgoFilter.tsx<br/>client:idle<br/>~3KB"]
         VC["ViewCounter.tsx<br/>client:visible<br/>~5KB"]
@@ -45,17 +48,20 @@ graph TD
 | `ContactForm.tsx` | `client:visible` | 8KB | When scrolled into viewport | Below fold; no need to load until user sees it |
 | `AlgoFilter.tsx` | `client:idle` | 3KB | When browser is idle | Enhancement, not critical; can wait for main thread |
 | `ViewCounter.tsx` | `client:visible` | 5KB | When scrolled into viewport | Passive analytics; no rush |
+| `TerminalHero.tsx` | `client:load` | 4KB | Immediately on page load | Above-the-fold hero animation; uses CSS vars for theme |
+| `ProjectFilter.tsx` | `client:load` | 3KB | Immediately on page load | Category filter for /projects; receives serialised data |
+| `LogTimeline.tsx` | `client:load` | 4KB | Immediately on page load | Tag filter + accordion for /logs; commit-log style UI |
 
 ## State Architecture
 
 ```typescript
 // src/store/uiStore.ts
-import { persistentAtom } from '@nanostores/persistent';
 import { atom } from 'nanostores';
 
+export const THEME_KEY = 'harshit:theme'; // namespaced localStorage key
 // SSR-safe: starts 'dark' on server. FOUC script in BaseHead sets data-theme.
-export const $theme = atom<'dark' | 'light' | 'system'>('dark');
-// localStorage key: 'theme'  (plain atom + manual localStorage, not persistentAtom)
+export const $theme = atom<'dark' | 'light'>('dark');
+// Toggle dark↔light only (no system mode)
 
 // Algorithm filter — resets on page navigation
 export const $algoFilter = atom<{
@@ -83,10 +89,10 @@ export const $algoFilter = atom<{
 Dark mode requires a render-blocking `is:inline` script in `<head>` to avoid Flash of Unstyled Content:
 
 ```html
-<!-- In BaseLayout.astro <head> — runs BEFORE first paint -->
+<!-- In BaseHead.astro <head> — runs BEFORE first paint -->
 <script is:inline>
   (function() {
-    var s = localStorage.getItem('theme');
+    var s = localStorage.getItem('harshit:theme');
     var resolved = (s === 'light') ? 'light'
       : (s === 'dark') ? 'dark'
       : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';

@@ -42,6 +42,9 @@ graph TD
 
     subgraph Islands ["Preact Islands"]
         TT[ThemeToggle]
+        TH[TerminalHero]
+        PF[ProjectFilter]
+        LT[LogTimeline]
         CF[ContactForm]
         AF[AlgoFilter]
         VC[ViewCounter]
@@ -140,37 +143,64 @@ const { title, description, image, type } = Astro.props;
 
 | Property | Type | Required | Description |
 |---|---|---|---|
-| (none) | — | — | Self-contained, reads/writes `$theme` nanostore |
+| (none) | — | — | Self-contained, reads `$theme` nanostore for icon state |
 
 **Hydration:** `client:load` — Must be interactive immediately.
 
+**Theme pattern:** Only island that imports `$theme`. Uses `THEME_KEY = 'harshit:theme'` for localStorage. Toggles dark↔light (no system mode). See ADR-012 for why other islands use CSS custom properties instead.
+
 ```tsx
-// ThemeToggle.tsx
+// ThemeToggle.tsx — simplified
 import { useStore } from '@nanostores/preact';
-import { $theme } from '../store/uiStore';
+import { $theme, cycleTheme } from '../store/uiStore';
 
-export default function ThemeToggle() {
+export function ThemeToggle() {
   const theme = useStore($theme);
-
-  const cycleTheme = () => {
-    const next = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light';
-    $theme.set(next);
-    applyTheme(next);
-  };
-
   return (
-    <button onClick={cycleTheme} aria-label={`Current theme: ${theme}`}>
-      {theme === 'light' ? '☀️' : theme === 'dark' ? '🌙' : '🖥️'}
+    <button onClick={cycleTheme} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`}>
+      {theme === 'dark' ? <MoonIcon /> : <SunIcon />}
     </button>
   );
 }
-
-function applyTheme(theme: 'light' | 'dark' | 'system') {
-  const isDark = theme === 'dark' ||
-    (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  document.documentElement.classList.toggle('dark', isDark);
-}
 ```
+
+---
+
+### TerminalHero.tsx (Preact Island)
+
+| Property | Type | Required | Description |
+|---|---|---|---|
+| (none) | — | — | Self-contained animated terminal hero |
+
+**Hydration:** `client:load` — Above-the-fold hero animation.
+
+**Theme pattern:** Uses `var(--terminal-*)` CSS custom properties for all colors. Zero nanostore imports. Theme changes cascade automatically via CSS.
+
+---
+
+### ProjectFilter.tsx (Preact Island)
+
+| Property | Type | Required | Description |
+|---|---|---|---|
+| `projects` | `SerializedProject[]` | ✅ | All projects with ISO date strings |
+| `categories` | `string[]` | ✅ | Unique categories derived from content |
+
+**Hydration:** `client:load` — Interactive category filter on /projects page.
+
+**Data flow:** Page fetches `getCollection('projects')` → serialises (Date→ISO string) → derives unique categories → passes both as props.
+
+---
+
+### LogTimeline.tsx (Preact Island)
+
+| Property | Type | Required | Description |
+|---|---|---|---|
+| `logs` | `SerializedLog[]` | ✅ | All logs with ISO date strings, commit hashes |
+| `allTags` | `string[]` | ✅ | Unique tags derived from content |
+
+**Hydration:** `client:load` — Interactive tag filter + expandable accordion on /logs page.
+
+**UI pattern:** Commit-log style with deterministic 7-char hex hashes, relative timestamps, branch-dot timeline, and chevron-toggled accordion for each entry.
 
 ---
 

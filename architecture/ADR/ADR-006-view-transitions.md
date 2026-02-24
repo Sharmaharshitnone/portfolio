@@ -41,21 +41,46 @@ Adding `<ClientRouter />` to the shared `<head>` enables:
 
 ### Theme Persistence with View Transitions
 
-Dark mode must survive View Transitions. Handle with `astro:after-swap`:
+Dark mode must survive View Transitions. The approach has two layers:
+
+#### Layer 1: DOM attribute stamping (inline script in BaseHead)
+
+The inline `is:inline` script sets `data-theme` on `<html>` at three points:
+1. **Immediate** — prevents FOUC on initial page load
+2. **`astro:before-swap`** — stamps `event.newDocument.documentElement` so the transition screenshot is correct
+3. **`astro:after-swap`** — belt-and-suspenders re-application after DOM swap
 
 ```astro
 <script is:inline>
-  // Runs AFTER every view transition swap — re-applies theme class
-  document.addEventListener('astro:after-swap', () => {
-    const theme = localStorage.getItem('harshit:theme') || 'system';
-    const isDark = theme === 'dark' || 
-      (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    document.documentElement.classList.toggle('dark', isDark);
-  });
+  ;(function () {
+    var KEY = 'harshit:theme';
+    function resolve() {
+      var s = localStorage.getItem(KEY) || 'system';
+      return (s === 'dark' || (s === 'system' && matchMedia('(prefers-color-scheme:dark)').matches))
+        ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', resolve());
+    document.addEventListener('astro:before-swap', function (e) {
+      e.newDocument.documentElement.setAttribute('data-theme', resolve());
+    });
+    document.addEventListener('astro:after-swap', function () {
+      document.documentElement.setAttribute('data-theme', resolve());
+    });
+  })();
 </script>
 ```
 
-> **Note:** This is the _View Transition_ theme restore. The initial FOUC prevention script (also `is:inline`) runs in `<head>` on first load — see [HLD/03 Island Hydration Map](../HLD/03-island-hydration-map.md#fouc-prevention).
+#### Layer 2: CSS custom properties for island colours (ADR-012)
+
+Island components like TerminalHero use `var(--terminal-*)` CSS custom properties
+instead of JS-derived colour objects. This eliminates hydration mismatches entirely —
+see [ADR-012: CSS Custom Properties for Island Theming](ADR-012-css-var-theme-islands.md).
+
+#### Layer 3: Nanostore sync for non-styling state
+
+The `$theme` nanostore is re-synced via `astro:after-swap` in `uiStore.ts` module scope.
+This is only needed for **icon switching** (ThemeToggle sun/moon) —
+styling must NOT depend on the nanostore.
 
 ## Consequences
 

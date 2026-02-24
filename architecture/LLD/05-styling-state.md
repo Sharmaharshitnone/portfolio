@@ -158,19 +158,26 @@ import { atom } from 'nanostores';
 // SSR-safe: always start with 'dark' on the server.
 // The client FOUC script in BaseHead sets data-theme before hydration,
 // so the atom is only used for reactive UI (ThemeToggle icon state).
-export const $theme = atom<'dark' | 'light' | 'system'>('dark');
+export const THEME_KEY = 'harshit:theme';  // namespaced localStorage key
+export const $theme = atom<'dark' | 'light'>('dark');
 
-/** Apply theme to DOM + persist to localStorage */
-export function applyTheme(theme: Theme): void {
-  $theme.set(theme);
-  localStorage.setItem('theme', theme);  // localStorage key: 'theme'
-  document.documentElement.setAttribute('data-theme', resolveTheme(theme));
+/** Resolve: read localStorage → fallback to system preference → 'dark' */
+export function resolveTheme(): 'dark' | 'light' {
+  const stored = localStorage.getItem(THEME_KEY);
+  if (stored === 'dark' || stored === 'light') return stored;
+  return matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
 }
 
-/** Cycle: light → dark → system → light */
+/** Apply theme to DOM + persist to localStorage */
+export function applyTheme(theme: 'dark' | 'light'): void {
+  $theme.set(theme);
+  localStorage.setItem(THEME_KEY, theme);
+  document.documentElement.setAttribute('data-theme', theme);
+}
+
+/** Toggle: dark ↔ light (no system mode — explicit choice) */
 export function cycleTheme(): void {
-  const current = $theme.get();
-  const next = current === 'light' ? 'dark' : current === 'dark' ? 'system' : 'light';
+  const next = $theme.get() === 'dark' ? 'light' : 'dark';
   applyTheme(next);
 }
 
@@ -203,11 +210,34 @@ export default function MyIsland() {
 }
 ```
 
+### CSS Custom Properties for Island Theming (ADR-012)
+
+Preact islands **cannot** reliably read `data-theme` during hydration due to Astro's
+VDOM diffing. Instead, islands consume theme via CSS custom properties:
+
+```css
+/* global.css — Terminal island vars */
+:root {
+  --terminal-prompt-user: #3fb950;
+  --terminal-separator: #484f58;
+  --terminal-path: #58a6ff;
+  /* ... */
+}
+[data-theme="light"] {
+  --terminal-prompt-user: #1a7f37;
+  --terminal-separator: #57606a;
+  --terminal-path: #0969da;
+  /* ... */
+}
+```
+
+**Rule:** Only `ThemeToggle` may import `$theme` from the store (to drive its icon).
+All other islands read `var(--*)` for theme-dependent colors.
+
 ### Dependencies
 
 | Package | Size (gzip) | Purpose |
 |---|---|---|
 | `nanostores` | 334 B | Core atom/map stores |
-| `@nanostores/persistent` | 890 B | localStorage persistence |
 | `@nanostores/preact` | 200 B | Preact useStore hook |
-| **Total** | **~1.4 KB** | |
+| **Total** | **~0.5 KB** | |

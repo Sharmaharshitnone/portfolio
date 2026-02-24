@@ -14,20 +14,22 @@ const { class: className } = Astro.props;
 
 <section
     aria-labelledby="hero-heading"
-    class:list={["container pt-20 sm:pt-32 pb-24 sm:pb-36 flex flex-col items-start", className]}
+    class:list={["container pt-20 sm:pt-32 pb-24 sm:pb-36 flex flex-col lg:flex-row items-center gap-8 lg:gap-0", className]}
 >
-    <h1
-        id="hero-heading"
-        class="text-foreground tracking-tight leading-[1.15] font-medium mb-4"
-        style="font-size: clamp(2rem, 5vw, 3rem);"
-    >
-        Harshit Sharma
-    </h1>
-    <p class="text-dim text-[15px] max-w-xl leading-relaxed mb-14 sm:mb-16">
-        Systems engineer building distributed infrastructure. I write code
-        that runs at scale and doesn't break at 3am.
-    </p>
-    <div class="w-full text-left">
+    <div class="w-full lg:w-[45%] flex flex-col items-center lg:items-start text-center lg:text-left">
+        <h1
+            id="hero-heading"
+            class="text-foreground tracking-tight leading-[1.15] font-medium mb-4"
+            style="font-size: clamp(2rem, 5vw, 3rem);"
+        >
+            Harshit Sharma
+        </h1>
+        <p class="text-dim text-[15px] max-w-xl leading-relaxed mb-14 sm:mb-16">
+            Systems engineer building distributed infrastructure. I write code
+            that runs at scale and doesn't break at 3am.
+        </p>
+    </div>
+    <div class="w-full lg:w-[55%]">
         <TerminalHero client:load />
     </div>
 </section>

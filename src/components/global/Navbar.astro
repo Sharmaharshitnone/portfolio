@@ -9,11 +9,9 @@ import { NAV_LINKS } from "../../lib/constants";
 const currentPath = Astro.url.pathname;
 ---
 
-<div id="nav-sentinel" class="absolute top-0 h-[1px] w-full pointer-events-none opacity-0" aria-hidden="true"></div>
-
 <header
     id="site-nav"
-    class="sticky top-0 z-50 h-14 border-b border-border backdrop-blur-sm transition-shadow duration-200"
+    class="sticky top-0 z-50 h-14 border-b border-border backdrop-blur-sm transition-all duration-200"
     style="background-color: color-mix(in srgb, var(--bg) 80%, transparent);"
 >
     <div class="container h-full flex items-center justify-between">
@@ -104,9 +102,8 @@ const currentPath = Astro.url.pathname;
         const iconMenu = document.getElementById("icon-menu");
         const iconClose = document.getElementById("icon-close");
         const header = document.getElementById("site-nav");
-        const sentinel = document.getElementById("nav-sentinel");
 
-        if (!btn || !panel || !iconMenu || !iconClose) return;
+        if (!btn || !panel || !iconMenu || !iconClose || !header) return;
 
         // Reset state
         let isOpen = false;
@@ -117,7 +114,7 @@ const currentPath = Astro.url.pathname;
         iconMenu.classList.remove("hidden");
         iconClose.classList.add("hidden");
 
-        // Idempotency Check: Prevent duplicate listeners on View Transitions without DOM thrashing
+        // Idempotency: Prevent duplicate listeners on View Transitions
         if (btn.dataset.navInitialized === "true") return;
         btn.dataset.navInitialized = "true";
 
@@ -135,14 +132,48 @@ const currentPath = Astro.url.pathname;
             iconClose.classList.toggle("hidden", !isOpen);
         });
 
-        if (sentinel && header) {
-            new IntersectionObserver(
-                function (entries) {
-                    header.classList.toggle("shadow-sm", !entries[0].isIntersecting);
-                },
-                { root: null, threshold: 0 }
-            ).observe(sentinel);
+        // ── Smart navbar: hide on scroll-down, show on scroll-up ──
+        let lastScrollY = window.scrollY;
+        let ticking = false;
+        const SCROLL_THRESHOLD = 10; // px dead-zone to prevent micro-jitter
+
+        function onScroll() {
+            const currentY = window.scrollY;
+            const delta = currentY - lastScrollY;
+
+            if (currentY <= 0) {
+                // At very top — always show, remove shadow
+                header.style.transform = "translateY(0)";
+                header.classList.remove("shadow-sm");
+            } else if (delta > SCROLL_THRESHOLD) {
+                // Scrolling DOWN — hide navbar
+                header.style.transform = "translateY(-100%)";
+                // Also close mobile menu if open
+                if (isOpen) {
+                    isOpen = false;
+                    panel.classList.add("max-h-0", "opacity-0");
+                    panel.classList.remove("max-h-[320px]", "opacity-100");
+                    panel.setAttribute("aria-hidden", "true");
+                    btn.setAttribute("aria-expanded", "false");
+                    iconMenu.classList.remove("hidden");
+                    iconClose.classList.add("hidden");
+                }
+            } else if (delta < -SCROLL_THRESHOLD) {
+                // Scrolling UP — show navbar with shadow
+                header.style.transform = "translateY(0)";
+                header.classList.add("shadow-sm");
+            }
+
+            lastScrollY = currentY;
+            ticking = false;
         }
+
+        window.addEventListener("scroll", function () {
+            if (!ticking) {
+                requestAnimationFrame(onScroll);
+                ticking = true;
+            }
+        }, { passive: true });
     }
 
     document.addEventListener("astro:page-load", setupNav);
