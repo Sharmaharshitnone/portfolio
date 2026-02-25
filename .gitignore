@@ -36,6 +36,6 @@ public/fonts/*.ttf
 
 # Deployment artifacts
 .cloudflare/
-
+AGENTS.md
 # architecture/
 # Uncomment above line to exclude architecture docs
