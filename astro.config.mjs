@@ -9,6 +9,12 @@ export default defineConfig({
     // ── 12-Factor: Site URL is injected from env or defaults to production URL
     site: process.env.SITE_URL ?? "https://harshit.systems",
 
+    // Prefetch linked pages on hover so navigation feels instant
+    prefetch: {
+        prefetchAll: false,
+        defaultStrategy: "hover",
+    },
+
     // Cloudflare Pages adapter — needed for server-rendered API routes
     adapter: cloudflare({
         platformProxy: { enabled: true },

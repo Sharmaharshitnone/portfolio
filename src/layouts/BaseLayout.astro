@@ -77,8 +77,8 @@ const searchItems = [
         <!-- Fixed navbar + controls -->
         <Navbar>
             <Fragment slot="nav-right">
-                <SearchBar client:load items={searchItems} />
-                <ThemeToggle client:load />
+                <SearchBar client:load transition:persist items={searchItems} />
+                <ThemeToggle client:load transition:persist />
             </Fragment>
         </Navbar>
         <!-- Spacer for fixed header height -->
