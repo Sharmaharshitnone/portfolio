@@ -1,6 +1,8 @@
 ---
 import { ThemeToggle } from "../components/islands/ThemeToggle";
 import { SearchBar } from "../components/islands/SearchBar";
+import { HexToggle } from "../components/islands/HexToggle";
+import { HexOverlay } from "../components/islands/HexOverlay";
 import Navbar from "../components/global/Navbar.astro";
 import Footer from "../components/global/Footer.astro";
 import BaseHead from "../components/global/BaseHead.astro";
@@ -78,6 +80,7 @@ const searchItems = [
         <Navbar>
             <Fragment slot="nav-right">
                 <SearchBar client:load transition:persist items={searchItems} />
+                <HexToggle client:load transition:persist />
                 <ThemeToggle client:load transition:persist />
             </Fragment>
         </Navbar>
@@ -89,5 +92,8 @@ const searchItems = [
         </main>
 
         <Footer />
+
+        <!-- Hex dump overlay — renders nothing when mode === 'ui' -->
+        <HexOverlay client:idle />
     </body>
 </html>

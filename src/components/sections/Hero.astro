@@ -1,9 +1,10 @@
 ---
 /**
  * Hero — Landing page hero section.
- * Zero JS. TerminalHero island hydrates independently.
+ * TerminalHero + LiveStatus islands hydrate independently.
  */
 import { TerminalHero } from "../islands/TerminalHero";
+import { LiveStatus } from "../islands/LiveStatus";
 
 interface Props {
     class?: string;
@@ -24,10 +25,13 @@ const { class: className } = Astro.props;
         >
             Harshit Sharma
         </h1>
-        <p class="text-dim text-[15px] max-w-xl leading-relaxed mb-14 sm:mb-16">
+        <p class="text-dim text-[15px] max-w-xl leading-relaxed mb-6">
             Systems engineer building distributed infrastructure. I write code
             that runs at scale and doesn't break at 3am.
         </p>
+        <div class="mb-14 sm:mb-16">
+            <LiveStatus client:idle />
+        </div>
     </div>
     <div class="w-full lg:w-[55%]">
         <TerminalHero client:idle />

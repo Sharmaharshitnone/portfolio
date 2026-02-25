@@ -57,6 +57,17 @@ export const $algoFilter = atom<AlgoFilterState>({
   difficulty: null,
 });
 
+// ═══════════════ VIEW MODE STATE ═══════════════
+// "ui" = normal view, "hex" = hex dump overlay.
+// Transient — resets on full page navigation.
+export type ViewMode = 'ui' | 'hex';
+
+export const $viewMode = atom<ViewMode>('ui');
+
+export function toggleViewMode(): void {
+  $viewMode.set($viewMode.get() === 'ui' ? 'hex' : 'ui');
+}
+
 // ═══════════════ VIEW-TRANSITION SYNC ═══════════════
 // Bundled modules execute once; this listener persists across navigations.
 // It keeps $theme in-sync after every client-side View Transition swap so

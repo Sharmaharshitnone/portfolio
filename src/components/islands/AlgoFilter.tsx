@@ -10,6 +10,15 @@ import { useStore } from '@nanostores/preact';
 import { useCallback } from 'preact/hooks';
 import { $algoFilter, type AlgoFilterState } from '../../store/uiStore';
 
+/** Maps enum values to display names for dropdowns */
+const PLATFORM_DISPLAY: Record<string, string> = {
+  codeforces: 'Codeforces',
+  leetcode: 'LeetCode',
+  atcoder: 'AtCoder',
+  cses: 'CSES',
+  codechef: 'CodeChef',
+};
+
 interface Props {
   platforms: string[];
   difficulties: string[];
@@ -82,7 +91,7 @@ export function AlgoFilter({ platforms, difficulties }: Props) {
           <option value="all">Platform</option>
           {platforms.map((p) => (
             <option key={p} value={p}>
-              {p}
+              {PLATFORM_DISPLAY[p] ?? p}
             </option>
           ))}
         </select>

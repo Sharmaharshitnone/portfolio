@@ -23,6 +23,7 @@ export interface CfEnv {
   APPWRITE_DB_ID?: string;
   APPWRITE_VIEWS_TABLE_ID?: string;
   APPWRITE_CONTACT_TABLE_ID?: string;
+  APPWRITE_STATUS_TABLE_ID?: string;
   APPWRITE_API_KEY?: string;
   [key: string]: string | undefined;
 }

@@ -18,7 +18,7 @@ const stats = {
 };
 
 // Derive unique values for filter dropdowns
-const platforms = [...new Set(algorithms.map((a) => PLATFORM_NAMES[a.data.platform] ?? a.data.platform))];
+const platforms = [...new Set(algorithms.map((a) => a.data.platform))];
 const difficulties = [...new Set(algorithms.map((a) => a.data.difficulty))];
 ---
 
