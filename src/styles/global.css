@@ -54,6 +54,41 @@
         0 40px 100px rgba(0, 0, 0, 0.5),
         0 0 120px rgba(0, 229, 160, 0.15),
         inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+    /* Wasm runner — CSS-driven theming (ADR-012) */
+    --wasm-bg:            #0d1117;
+    --wasm-header-bg:     #161b22;
+    --wasm-text:          #e6edf3;
+    --wasm-text-dim:      #8b949e;
+    --wasm-prompt:        #3fb950;
+    --wasm-output:        #d2dae4;
+    --wasm-error:         #f85149;
+    --wasm-accent:        #58a6ff;
+    --wasm-border:        #30363d;
+    --wasm-btn-bg:        #21262d;
+    --wasm-btn-hover:     #30363d;
+    --wasm-cursor:        #00e5a0;
+    --wasm-selection:     rgba(88, 166, 255, 0.25);
+    --wasm-status-ok:     #3fb950;
+    --wasm-status-warn:   #d29922;
+
+    /* Heatmap — GitHub contribution graph levels */
+    --heatmap-empty:      #161b22;
+    --heatmap-l1:         #0e4429;
+    --heatmap-l2:         #006d32;
+    --heatmap-l3:         #26a641;
+    --heatmap-l4:         #39d353;
+    --heatmap-border:     #30363d;
+    --heatmap-text:       #8b949e;
+
+    /* System diagram — architecture visualization */
+    --diagram-bg:         #0d1117;
+    --diagram-node-bg:    #161b22;
+    --diagram-node-border:#30363d;
+    --diagram-node-text:  #e6edf3;
+    --diagram-edge:       #484f58;
+    --diagram-edge-active:#58a6ff;
+    --diagram-label:      #8b949e;
 }
 
 [data-theme="light"] {
@@ -88,6 +123,41 @@
         0 40px 100px rgba(0, 0, 0, 0.04),
         0 0 120px rgba(0, 150, 100, 0.06),
         inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+    /* Wasm runner — light variant */
+    --wasm-bg:            #ffffff;
+    --wasm-header-bg:     #f6f8fa;
+    --wasm-text:          #1f2328;
+    --wasm-text-dim:      #656d76;
+    --wasm-prompt:        #1a7f37;
+    --wasm-output:        #24292f;
+    --wasm-error:         #cf222e;
+    --wasm-accent:        #0969da;
+    --wasm-border:        #d0d7de;
+    --wasm-btn-bg:        #f6f8fa;
+    --wasm-btn-hover:     #eaeef2;
+    --wasm-cursor:        #116329;
+    --wasm-selection:     rgba(9, 105, 218, 0.2);
+    --wasm-status-ok:     #1a7f37;
+    --wasm-status-warn:   #9a6700;
+
+    /* Heatmap — light variant */
+    --heatmap-empty:      #ebedf0;
+    --heatmap-l1:         #9be9a8;
+    --heatmap-l2:         #40c463;
+    --heatmap-l3:         #30a14e;
+    --heatmap-l4:         #216e39;
+    --heatmap-border:     #d0d7de;
+    --heatmap-text:       #656d76;
+
+    /* System diagram — light variant */
+    --diagram-bg:         #ffffff;
+    --diagram-node-bg:    #f6f8fa;
+    --diagram-node-border:#d0d7de;
+    --diagram-node-text:  #1f2328;
+    --diagram-edge:       #8b949e;
+    --diagram-edge-active:#0969da;
+    --diagram-label:      #656d76;
 }
 
 /*

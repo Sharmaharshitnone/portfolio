@@ -7,6 +7,7 @@
  */
 import type { APIRoute } from 'astro';
 import { createAppwrite, ID } from '../../lib/appwrite';
+import { json } from '../../lib/api-utils';
 import { z } from 'astro/zod';
 
 export const prerender = false;
@@ -34,7 +35,7 @@ export const POST: APIRoute = async (context) => {
   }
 
   // ── Read CF bindings per-request ─────────────────────
-  const cfEnv = (context.locals as any).runtime?.env ?? {};
+  const cfEnv = context.locals.runtime.env;
   const { databases, DB_ID, contactTableId } = createAppwrite(cfEnv);
 
   if (!DB_ID || !contactTableId) {
@@ -56,11 +57,3 @@ export const POST: APIRoute = async (context) => {
     return json({ error: 'Failed to send message. Please try again later.' }, 500);
   }
 };
-
-/** Helper: create JSON Response with status code */
-function json(data: Record<string, unknown>, status: number): Response {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}

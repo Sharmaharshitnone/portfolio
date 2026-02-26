@@ -7,7 +7,8 @@
  */
 import type { APIRoute } from 'astro';
 import { createAppwrite, ID } from '../../lib/appwrite';
-import { Query } from 'appwrite';
+import { json } from '../../lib/api-utils';
+import { Query } from 'node-appwrite';
 
 export const prerender = false;
 
@@ -15,7 +16,7 @@ export const GET: APIRoute = async (context) => {
   const slug = context.url.searchParams.get('slug');
   if (!slug) return json({ error: 'Missing slug parameter' }, 400);
 
-  const cfEnv = (context.locals as any).runtime?.env ?? {};
+  const cfEnv = context.locals.runtime.env;
   const { databases, DB_ID, viewsTableId } = createAppwrite(cfEnv);
 
   if (!DB_ID || !viewsTableId) {
@@ -46,7 +47,7 @@ export const POST: APIRoute = async (context) => {
     return json({ error: 'Missing slug' }, 400);
   }
 
-  const cfEnv = (context.locals as any).runtime?.env ?? {};
+  const cfEnv = context.locals.runtime.env;
   const { databases, DB_ID, viewsTableId } = createAppwrite(cfEnv);
 
   if (!DB_ID || !viewsTableId) {
@@ -75,10 +76,3 @@ export const POST: APIRoute = async (context) => {
     return json({ views: 0 }, 200);
   }
 };
-
-function json(data: Record<string, unknown>, status: number): Response {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}

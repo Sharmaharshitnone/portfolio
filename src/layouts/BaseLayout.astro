@@ -93,7 +93,10 @@ const searchItems = [
 
         <Footer />
 
-        <!-- Hex dump overlay — renders nothing when mode === 'ui' -->
-        <HexOverlay client:idle />
+        <!-- Hex dump overlay — renders nothing when mode === 'ui'.
+             transition:persist keeps it alive across navigations so it
+             doesn't get destroyed/re-created out of sync with HexToggle.
+             $viewMode resets to 'ui' on astro:after-swap (uiStore.ts). -->
+        <HexOverlay client:idle transition:persist />
     </body>
 </html>

@@ -14,7 +14,7 @@
  * createAppwrite(cfEnv) is called once per request handler with the live bindings.
  * ─────────────────────────────────────────────────────────────────────────────
  */
-import { Client, Databases, ID } from 'appwrite';
+import { Client, Databases, ID } from 'node-appwrite';
 
 /** Shape of the Cloudflare binding env object (subset we use). */
 export interface CfEnv {
@@ -25,7 +25,6 @@ export interface CfEnv {
   APPWRITE_CONTACT_TABLE_ID?: string;
   APPWRITE_STATUS_TABLE_ID?: string;
   APPWRITE_API_KEY?: string;
-  [key: string]: string | undefined;
 }
 
 /** Per-request Appwrite client — call this at the top of each API route handler. */
@@ -38,14 +37,9 @@ export function createAppwrite(cfEnv: CfEnv) {
   if (endpoint && projectId) {
     client.setEndpoint(endpoint).setProject(projectId);
   }
-  // Server API key (optional Pages secret) — unlocks writes on locked collections.
+  // Server API key — unlocks reads/writes on restricted collections.
   if (apiKey) {
-    try {
-      // @ts-ignore — setKey is available in Appwrite SDK server usage
-      client.setKey?.(apiKey);
-    } catch {
-      console.warn('[appwrite] setKey not available on this SDK version.');
-    }
+    client.setKey(apiKey);
   }
 
   return {
@@ -53,6 +47,7 @@ export function createAppwrite(cfEnv: CfEnv) {
     DB_ID:          cfEnv.APPWRITE_DB_ID          || '',
     viewsTableId:   cfEnv.APPWRITE_VIEWS_TABLE_ID  || '',
     contactTableId: cfEnv.APPWRITE_CONTACT_TABLE_ID || '',
+    statusTableId:  cfEnv.APPWRITE_STATUS_TABLE_ID  || '',
   };
 }
 

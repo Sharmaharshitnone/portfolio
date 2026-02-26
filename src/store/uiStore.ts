@@ -74,9 +74,17 @@ export function toggleViewMode(): void {
 // all islands that useStore($theme) re-render with the correct value.
 if (typeof document !== 'undefined') {
   document.addEventListener('astro:after-swap', () => {
+    // Re-sync theme from localStorage after View Transition swap
     const stored = localStorage.getItem(THEME_KEY);
     if (stored === 'dark' || stored === 'light' || stored === 'system') {
       $theme.set(stored);
+    }
+
+    // Reset hex view mode — hex dump is page-specific content, so navigating
+    // away always exits hex mode. Both HexToggle and HexOverlay use
+    // transition:persist, so they survive the swap and reactively update.
+    if ($viewMode.get() !== 'ui') {
+      $viewMode.set('ui');
     }
   });
 }

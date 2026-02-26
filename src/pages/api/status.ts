@@ -9,24 +9,25 @@
  */
 import type { APIRoute } from 'astro';
 import { createAppwrite } from '../../lib/appwrite';
-import { Query } from 'appwrite';
+import { json } from '../../lib/api-utils';
+import { Query } from 'node-appwrite';
 
 export const prerender = false;
 
-/** Default status shown when Appwrite is unavailable */
-const DEFAULT_STATUS = {
-  status: 'Building distributed systems',
-  emoji: '++',
-  updatedAt: new Date().toISOString(),
-};
+/** Build a default status response with a fresh timestamp per request */
+function defaultStatus() {
+  return {
+    status: 'Building distributed systems',
+    emoji: '++',
+  };
+}
 
 export const GET: APIRoute = async (context) => {
-  const cfEnv = (context.locals as any).runtime?.env ?? {};
-  const { databases, DB_ID } = createAppwrite(cfEnv);
-  const statusTableId = cfEnv.APPWRITE_STATUS_TABLE_ID || '';
+  const cfEnv = context.locals.runtime.env;
+  const { databases, DB_ID, statusTableId } = createAppwrite(cfEnv);
 
   if (!DB_ID || !statusTableId) {
-    return json(DEFAULT_STATUS, 200);
+    return statusJson(defaultStatus());
   }
 
   try {
@@ -36,27 +37,30 @@ export const GET: APIRoute = async (context) => {
     ]);
 
     if (res.documents.length === 0) {
-      return json(DEFAULT_STATUS, 200);
+      return statusJson(defaultStatus());
     }
 
     const doc = res.documents[0];
-    return json({
-      status: doc.status ?? DEFAULT_STATUS.status,
-      emoji: doc.emoji ?? DEFAULT_STATUS.emoji,
-      updatedAt: doc.$updatedAt ?? doc.updatedAt ?? DEFAULT_STATUS.updatedAt,
-    }, 200);
+    const fallback = defaultStatus();
+
+    // Validate fields before sending — guard against malformed documents
+    const status = typeof doc.status === 'string' && doc.status.length <= 200
+      ? doc.status : fallback.status;
+    const emoji = typeof doc.emoji === 'string' && doc.emoji.length <= 10
+      ? doc.emoji : fallback.emoji;
+
+    return statusJson({ status, emoji });
   } catch (err) {
     console.error('[status] Read failed:', err);
-    return json(DEFAULT_STATUS, 200);
+    return statusJson(defaultStatus());
   }
 };
 
-function json(data: Record<string, unknown>, status: number): Response {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
-    },
-  });
+/** Status responses are cacheable at the edge. */
+const CACHE_HEADERS = {
+  'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
+};
+
+function statusJson(data: Record<string, unknown>): Response {
+  return json(data, 200, CACHE_HEADERS);
 }

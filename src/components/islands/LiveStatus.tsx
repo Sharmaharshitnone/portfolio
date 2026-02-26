@@ -17,6 +17,15 @@ interface StatusData {
   emoji: string;
 }
 
+/** Validate the API response shape at runtime without pulling in Zod (saves ~14KB). */
+function isStatusData(v: unknown): v is StatusData {
+  return (
+    typeof v === 'object' && v !== null &&
+    typeof (v as StatusData).status === 'string' &&
+    typeof (v as StatusData).emoji === 'string'
+  );
+}
+
 export function LiveStatus() {
   const [data, setData] = useState<StatusData | null>(null);
 
@@ -26,9 +35,10 @@ export function LiveStatus() {
     async function fetchStatus() {
       try {
         const res = await fetch('/api/status');
-        if (res.ok && !cancelled) {
-          const json = await res.json();
-          setData({ status: json.status, emoji: json.emoji });
+        if (!res.ok || cancelled) return;
+        const json: unknown = await res.json();
+        if (isStatusData(json) && !cancelled) {
+          setData(json);
         }
       } catch {
         // Silent degradation — show nothing on error
@@ -39,7 +49,9 @@ export function LiveStatus() {
     return () => { cancelled = true; };
   }, []);
 
-  if (!data) return null;
+  // Return a stable empty container instead of null to prevent Preact hydration
+  // mismatch — the island wrapper must have consistent root structure.
+  if (!data) return <span class="inline-flex items-center gap-2" aria-hidden="true" />;
 
   return (
     <div

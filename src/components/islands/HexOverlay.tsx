@@ -110,16 +110,22 @@ export function HexOverlay() {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [mode]);
 
-  if (mode !== 'hex') return null;
-
+  // Never return null from a transition:persist island — Preact's diffChildren
+  // crashes when switching between a rendered tree and null. Use CSS hiding instead.
+  const hidden = mode !== 'hex';
   const truncated = byteCount > MAX_BYTES;
 
   return (
     <div
       class="fixed inset-0 z-40 overflow-auto"
-      style={{ backgroundColor: 'var(--bg)', paddingTop: '3.5rem' }}
+      style={{
+        backgroundColor: 'var(--bg)',
+        paddingTop: '3.5rem',
+        display: hidden ? 'none' : undefined,
+      }}
       role="region"
       aria-label="Hex dump view of page content"
+      aria-hidden={hidden}
     >
       {/* Header bar */}
       <div

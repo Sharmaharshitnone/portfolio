@@ -42,6 +42,11 @@ const algorithms = defineCollection({
         executionTimeMs: z.number().optional(),
         memoryUsedKb: z.number().optional(),
         pubDate: z.coerce.date(),
+
+        // Wasm runner support — opt-in per algorithm
+        wasmSlug: z.string().optional(),
+        sampleInput: z.string().optional(),
+        sampleOutput: z.string().optional(),
     }),
 });
 

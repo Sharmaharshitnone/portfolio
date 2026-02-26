@@ -10,6 +10,9 @@ language: "cpp"
 executionTimeMs: 3
 memoryUsedKb: 11200
 pubDate: 2025-10-01
+wasmSlug: "two-sum"
+sampleInput: "4 9\n2 7 11 15"
+sampleOutput: "0 1"
 ---
 
 ## Problem Statement
