@@ -1,0 +1,245 @@
+---
+/**
+ * EngineeringPulse.astro — Build-time SVG contribution heatmap.
+ * Zero JS. GitHub-style 52×7 grid with CSS tooltips and theme-aware colors.
+ *
+ * Data sources:
+ * - GitHub contributions (if GITHUB_TOKEN + GITHUB_USERNAME set)
+ * - LeetCode submissions (if LEETCODE_USERNAME set)
+ * - Codeforces submissions (if CODEFORCES_HANDLE set)
+ * - Falls back to deterministic mock data when APIs unavailable
+ *
+ * Uses CSS custom properties for theming (ADR-012):
+ * --heatmap-empty, --heatmap-l1..l4, --heatmap-border, --heatmap-text
+ */
+import SectionHeading from "../ui/SectionHeading.astro";
+import { fetchPulseData, generateMockPulseData, countToLevel } from "../../lib/pulse-data";
+import type { DailyPulse, HeatmapLevel } from "../../lib/pulse-data";
+
+// Fetch data at build time — environment variables may not be available
+// in static builds, so gracefully fall back to mock data
+let pulseData: DailyPulse[];
+try {
+    const config = {
+        githubToken: import.meta.env.GITHUB_TOKEN,
+        githubUsername: import.meta.env.GITHUB_USERNAME ?? 'sharmaharshitnone',
+        leetcodeUsername: import.meta.env.LEETCODE_USERNAME,
+        codeforcesHandle: import.meta.env.CODEFORCES_HANDLE,
+    };
+
+    // Only fetch if at least one API credential is configured
+    const hasCredentials = config.githubToken || config.leetcodeUsername || config.codeforcesHandle;
+    pulseData = hasCredentials
+        ? await fetchPulseData(config)
+        : generateMockPulseData();
+} catch {
+    pulseData = generateMockPulseData();
+}
+
+// Compute stats
+const totalContributions = pulseData.reduce((sum, d) => sum + d.count, 0);
+const activeDays = pulseData.filter((d) => d.count > 0).length;
+const longestStreak = (() => {
+    let max = 0;
+    let current = 0;
+    for (const d of pulseData) {
+        if (d.count > 0) {
+            current++;
+            if (current > max) max = current;
+        } else {
+            current = 0;
+        }
+    }
+    return max;
+})();
+
+// Organize into weeks (columns) for the SVG grid
+// Each week = 7 days (Sun-Sat), grid reads left-to-right = oldest-to-newest
+interface CellData {
+    date: string;
+    count: number;
+    level: HeatmapLevel;
+    dayOfWeek: number; // 0=Sun, 6=Sat
+    weekIndex: number;
+    github: number;
+    leetcode: number;
+    codeforces: number;
+}
+
+const cells: CellData[] = [];
+const firstDate = new Date(pulseData[0].date);
+const firstDayOfWeek = firstDate.getDay(); // 0=Sunday
+
+pulseData.forEach((d, i) => {
+    const date = new Date(d.date);
+    const dayOfWeek = date.getDay();
+    // weekIndex = column in the grid
+    const daysSinceStart = Math.floor((date.getTime() - firstDate.getTime()) / 86400000);
+    const weekIndex = Math.floor((daysSinceStart + firstDayOfWeek) / 7);
+
+    cells.push({
+        date: d.date,
+        count: d.count,
+        level: countToLevel(d.count),
+        dayOfWeek,
+        weekIndex,
+        github: d.github,
+        leetcode: d.leetcode,
+        codeforces: d.codeforces,
+    });
+});
+
+const totalWeeks = cells.length > 0 ? cells[cells.length - 1].weekIndex + 1 : 53;
+
+// SVG dimensions
+const cellSize = 11;
+const cellGap = 3;
+const labelWidth = 28; // Space for day labels (Mon, Wed, Fri)
+const headerHeight = 18; // Space for month labels
+const gridWidth = totalWeeks * (cellSize + cellGap);
+const gridHeight = 7 * (cellSize + cellGap);
+const svgWidth = labelWidth + gridWidth + 8;
+const svgHeight = headerHeight + gridHeight + 8;
+
+// Month labels — placed at the start of each month
+const monthLabels: Array<{ text: string; x: number }> = [];
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+let lastMonth = -1;
+for (const cell of cells) {
+    const month = new Date(cell.date).getMonth();
+    if (month !== lastMonth && cell.dayOfWeek === 0) {
+        monthLabels.push({
+            text: months[month],
+            x: labelWidth + cell.weekIndex * (cellSize + cellGap),
+        });
+        lastMonth = month;
+    }
+}
+
+// Day labels (Mon, Wed, Fri)
+const dayLabels = [
+    { text: 'Mon', y: headerHeight + 1 * (cellSize + cellGap) + cellSize / 2 },
+    { text: 'Wed', y: headerHeight + 3 * (cellSize + cellGap) + cellSize / 2 },
+    { text: 'Fri', y: headerHeight + 5 * (cellSize + cellGap) + cellSize / 2 },
+];
+
+// Format date for tooltip
+function formatDate(dateStr: string): string {
+    const d = new Date(dateStr);
+    const opts: Intl.DateTimeFormatOptions = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+    return d.toLocaleDateString('en-US', opts);
+}
+
+// Level to CSS var name
+const levelColors: Record<HeatmapLevel, string> = {
+    0: 'var(--heatmap-empty)',
+    1: 'var(--heatmap-l1)',
+    2: 'var(--heatmap-l2)',
+    3: 'var(--heatmap-l3)',
+    4: 'var(--heatmap-l4)',
+};
+---
+
+<section aria-labelledby="pulse-heading" class="container pb-24 sm:pb-36">
+    <div class="flex items-center justify-between mb-6">
+        <SectionHeading id="pulse-heading" text="Engineering Pulse" />
+        <div class="flex items-center gap-4 text-[11px] font-mono" style="color: var(--heatmap-text);">
+            <span>{totalContributions.toLocaleString()} contributions</span>
+            <span>{activeDays} active days</span>
+            <span>{longestStreak}d streak</span>
+        </div>
+    </div>
+
+    <!-- Heatmap grid -->
+    <div class="overflow-x-auto scrollbar-none -mx-2 px-2">
+        <svg
+            width={svgWidth}
+            height={svgHeight}
+            viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+            class="pulse-heatmap"
+            role="img"
+            aria-label={`Engineering activity heatmap showing ${totalContributions} contributions over the last year`}
+        >
+            {/* Month labels */}
+            {monthLabels.map((m) => (
+                <text
+                    x={m.x}
+                    y={12}
+                    fill="var(--heatmap-text)"
+                    font-size="10"
+                    font-family="'JetBrains Mono', monospace"
+                >
+                    {m.text}
+                </text>
+            ))}
+
+            {/* Day of week labels */}
+            {dayLabels.map((d) => (
+                <text
+                    x={0}
+                    y={d.y}
+                    fill="var(--heatmap-text)"
+                    font-size="9"
+                    font-family="'JetBrains Mono', monospace"
+                    dominant-baseline="central"
+                >
+                    {d.text}
+                </text>
+            ))}
+
+            {/* Activity cells */}
+            {cells.map((cell) => {
+                const x = labelWidth + cell.weekIndex * (cellSize + cellGap);
+                const y = headerHeight + cell.dayOfWeek * (cellSize + cellGap);
+                const tooltip = cell.count > 0
+                    ? `${cell.count} contribution${cell.count !== 1 ? 's' : ''} on ${formatDate(cell.date)}`
+                    : `No contributions on ${formatDate(cell.date)}`;
+
+                return (
+                    <g class="pulse-cell" data-date={cell.date} data-count={cell.count}>
+                        <rect
+                            x={x}
+                            y={y}
+                            width={cellSize}
+                            height={cellSize}
+                            rx={2}
+                            fill={levelColors[cell.level]}
+                            stroke="var(--heatmap-border)"
+                            stroke-width="0.5"
+                            stroke-opacity="0.3"
+                        >
+                            <title>{tooltip}</title>
+                        </rect>
+                    </g>
+                );
+            })}
+        </svg>
+    </div>
+
+    {/* Legend + source indicators */}
+    <div class="flex items-center justify-between mt-4 text-[10px] font-mono" style="color: var(--heatmap-text);">
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1">
+                <span style="width:6px;height:6px;border-radius:50%;background:#3fb950;display:inline-block;" />
+                <span>GitHub</span>
+            </div>
+            <div class="flex items-center gap-1">
+                <span style="width:6px;height:6px;border-radius:50%;background:#ffa116;display:inline-block;" />
+                <span>LeetCode</span>
+            </div>
+            <div class="flex items-center gap-1">
+                <span style="width:6px;height:6px;border-radius:50%;background:#58a6ff;display:inline-block;" />
+                <span>Codeforces</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-1.5">
+            <span>Less</span>
+            {([0, 1, 2, 3, 4] as HeatmapLevel[]).map((level) => (
+                <span
+                    style={`width:${cellSize}px;height:${cellSize}px;border-radius:2px;background:${levelColors[level]};display:inline-block;border:0.5px solid var(--heatmap-border);opacity:0.8;`}
+                />
+            ))}
+            <span>More</span>
+        </div>
+    </div>
+</section>

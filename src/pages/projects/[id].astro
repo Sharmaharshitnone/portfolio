@@ -2,6 +2,7 @@
 import { getCollection, render } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Badge from "../../components/ui/Badge.astro";
+import SystemDiagram from "../../components/domain/SystemDiagram.astro";
 import { generateProjectSchema } from "../../lib/seo";
 export async function getStaticPaths() {
     const projects = await getCollection("projects");
@@ -116,6 +117,19 @@ const projectSchema = generateProjectSchema({
                 <ul class="list-disc list-inside text-dim text-[15px] leading-relaxed space-y-1">
                     {project.data.outcomes.map((o: string) => <li>{o}</li>)}
                 </ul>
+            </section>
+        )}
+
+        {/* System architecture diagram — build-time SVG, 0 KB JS */}
+        {project.data.diagram && (
+            <section class="mb-12">
+                <h2 class="text-foreground font-medium text-lg mb-4">Architecture</h2>
+                <div class="rounded-lg p-4 sm:p-6" style="background: var(--diagram-bg); border: 1px solid var(--diagram-node-border);">
+                    <SystemDiagram
+                        nodes={project.data.diagram.nodes}
+                        edges={project.data.diagram.edges}
+                    />
+                </div>
             </section>
         )}
 
