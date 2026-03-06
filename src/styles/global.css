@@ -80,6 +80,10 @@
     --heatmap-l4:         #39d353;
     --heatmap-border:     #30363d;
     --heatmap-text:       #8b949e;
+    /* Source-specific colors (dominant-source cell coloring) */
+    --heatmap-github:     #3fb950;
+    --heatmap-leetcode:   #ffa116;
+    --heatmap-codeforces: #58a6ff;
 
     /* System diagram — architecture visualization */
     --diagram-bg:         #0d1117;
@@ -149,6 +153,10 @@
     --heatmap-l4:         #216e39;
     --heatmap-border:     #d0d7de;
     --heatmap-text:       #656d76;
+    /* Source-specific colors (light theme) */
+    --heatmap-github:     #1a7f37;
+    --heatmap-leetcode:   #9a6700;
+    --heatmap-codeforces: #0969da;
 
     /* System diagram — light variant */
     --diagram-bg:         #ffffff;

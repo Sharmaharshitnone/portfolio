@@ -80,14 +80,4 @@ const logs = defineCollection({
     }),
 });
 
-const algorithmNotes = defineCollection({
-    loader: glob({ pattern: '**/*.md', base: './src/data/algorithm-notes' }),
-    schema: z.object({
-        title: z.string().min(1),
-        parentAlgo: z.string(),
-        section: z.enum(['approach', 'story', 'analysis', 'similar']),
-        pubDate: z.coerce.date(),
-    }),
-});
-
-export const collections = { projects, algorithms, logs, algorithmNotes };
+export const collections = { projects, algorithms, logs };

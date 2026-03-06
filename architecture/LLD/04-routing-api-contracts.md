@@ -18,10 +18,21 @@ graph LR
         L2["/logs/:id"] --> logs/id.astro["logs/[id].astro"]
     end
 
-    subgraph API ["API Endpoints"]
+    subgraph OG ["Build-Time OG Images"]
+        OG1["/og/...slug.png"] --> og/slug.png.ts["og/[...slug].png.ts"]
+    end
+
+    subgraph API ["API Endpoints (prerender: false)"]
         V["/api/views"] --> api/views.ts
         CF["/api/contact"] --> api/contact.ts
+        ST["/api/status"] --> api/status.ts
         R["/rss.xml"] --> rss.xml.ts
+    end
+
+    subgraph MW ["Middleware"]
+        MID["src/middleware.ts"] -.-> V
+        MID -.-> CF
+        MID -.-> ST
     end
 ```
 
@@ -67,80 +78,40 @@ const { Content } = await render(project);
 // src/pages/api/views.ts
 import type { APIRoute } from 'astro';
 import { z } from 'astro/zod';
-import { databases, DB_ID } from '../../lib/appwrite';
-import { ID, Query } from 'appwrite';
+import { createAppwrite, ID } from '../../lib/appwrite';
+import { json } from '../../lib/api-utils';
+import { Query } from 'node-appwrite';
 
-// ⚠️ REQUIRED: This endpoint runs at request-time, not build-time
 export const prerender = false;
 
-const VIEWS_TABLE = import.meta.env.PUBLIC_APPWRITE_VIEWS_TABLE_ID;
+/** Validate slug format: lowercase alphanumeric, hyphens, slashes. Max 200 chars. */
+const SlugParam = z.string()
+  .min(1)
+  .max(200)
+  .regex(/^[a-z0-9][a-z0-9\-\/]*$/, 'Invalid slug format');
 
-const ViewsInput = z.object({
-  slug: z.string().min(1).max(200),
-});
-
-export const POST: APIRoute = async ({ request }) => {
-  try {
-    const body = await request.json();
-    const { slug } = ViewsInput.parse(body);
-
-    let views: number;
-    try {
-      // Try to find existing row
-      const existing = await databases.listDocuments(DB_ID, VIEWS_TABLE, [
-        Query.equal('slug', slug),
-        Query.limit(1),
-      ]);
-
-      if (existing.documents.length > 0) {
-        const doc = existing.documents[0];
-        views = doc.views + 1;
-        await databases.updateDocument(DB_ID, VIEWS_TABLE, doc.$id, { views });
-      } else {
-        views = 1;
-        await databases.createDocument(DB_ID, VIEWS_TABLE, ID.unique(), { slug, views });
-      }
-    } catch {
-      views = 0; // Appwrite down — fail gracefully
-    }
-
-    return new Response(JSON.stringify({ slug, views }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': 'https://harshit.systems',
-      },
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return new Response(JSON.stringify({ error: 'Invalid input' }), { status: 400 });
-    }
-    return new Response(JSON.stringify({ error: 'Internal error' }), { status: 500 });
-  }
+export const GET: APIRoute = async (context) => {
+  const rawSlug = context.url.searchParams.get('slug');
+  const parsed = SlugParam.safeParse(rawSlug);
+  if (!parsed.success) return json({ error: 'Invalid slug parameter' }, 400);
+  // ... read from Appwrite
 };
 
-// CORS preflight for client-side Appwrite SDK calls
-export const OPTIONS: APIRoute = async () => {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': 'https://harshit.systems',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
+export const POST: APIRoute = async (context) => {
+  // Parse body, validate slug with SlugParam, upsert in Appwrite
+  // ...
 };
 ```
 
 | Field | Details |
 |---|---|
-| Method | `POST` |
+| Methods | `GET` (read count), `POST` (increment) |
 | Content-Type | `application/json` |
-| Request Body | `{ "slug": "vault-ledger" }` |
-| Success Response | `200 { "slug": "vault-ledger", "views": 42 }` |
-| Error (validation) | `400 { "error": "Invalid input" }` |
-| Error (server) | `500 { "error": "Internal error" }` |
-| CORS | `https://harshit.systems` only |
+| GET Params | `?slug=vault-ledger` |
+| POST Body | `{ "slug": "vault-ledger" }` |
+| Success Response | `200 { "views": 42 }` |
+| Error (validation) | `400 { "error": "Invalid slug parameter" }` |
+| CSRF | Origin validation via `src/middleware.ts` (POST only) |
 
 ---
 
@@ -153,20 +124,35 @@ export const OPTIONS: APIRoute = async () => {
 | Method | `POST` |
 | Content-Type | `application/json` |
 | Request Body | `{ "name": "string", "email": "string", "message": "string" }` |
-| Success Response | `200 { "success": true }` |
-| Validation Error | `400 { "error": "Invalid input", "details": [...] }` |
-| Rate Limit | Cloudflare WAF: 5 req/min per IP on this endpoint |
+| Success Response | `200 { "ok": true }` |
+| Validation Error | `422 { "error": "Name must be at least 2 characters" }` |
+| Parse Error | `400 { "error": "Invalid JSON body" }` |
+| Rate Limit | Cloudflare WAF: 5 req/10min per IP |
+| CSRF | Origin validation via `src/middleware.ts` |
 
 ```typescript
 export const prerender = false;
 
-const ContactInput = z.object({
-  name: z.string().min(2).max(100).trim(),
-  email: z.string().email().toLowerCase(),
-  message: z.string().min(10).max(1000).trim(),
-  idempotencyKey: z.string().uuid(), // Client-generated, prevents duplicate submissions
+const ContactPayload = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
+  email: z.string().email('Invalid email address'),
+  message: z.string().min(10, 'Message must be at least 10 characters').max(1000),
 });
 ```
+
+---
+
+### `GET /api/status`
+
+**Purpose:** Read current live status message from Appwrite LiveStatus table.
+
+| Field | Details |
+|---|---|
+| Method | `GET` |
+| Content-Type | `application/json` |
+| Success Response | `200 { "status": "Building distributed systems", "emoji": "++" }` |
+| Fallback | Returns default status if Appwrite is down or unconfigured |
+| Cache | `public, max-age=60, stale-while-revalidate=300` |
 
 ---
 

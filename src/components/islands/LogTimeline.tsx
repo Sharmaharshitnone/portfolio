@@ -19,17 +19,6 @@ interface Props {
     allTags: string[];
 }
 
-/** Generate a deterministic 7-char hex hash from a string */
-function fakeHash(input: string): string {
-    let hash = 0;
-    for (let i = 0; i < input.length; i++) {
-        const ch = input.charCodeAt(i);
-        hash = ((hash << 5) - hash) + ch;
-        hash |= 0;
-    }
-    return Math.abs(hash).toString(16).padStart(7, '0').slice(0, 7);
-}
-
 /** Relative time string (e.g. "3 days ago", "2 months ago") */
 function timeAgo(dateStr: string): string {
     const now = Date.now();

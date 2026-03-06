@@ -72,8 +72,8 @@ async function fetchGitHub(
   if (!token || !username) return result;
 
   try {
-    const query = `query {
-      user(login: "${username}") {
+    const query = `query($login: String!) {
+      user(login: $login) {
         contributionCalendar: contributionsCollection {
           contributionCalendar {
             weeks {
@@ -93,7 +93,7 @@ async function fetchGitHub(
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({ query, variables: { login: username } }),
     });
 
     if (!res.ok) return result;
@@ -137,8 +137,8 @@ async function fetchLeetCode(
   if (!username) return result;
 
   try {
-    const query = `query {
-      matchedUser(username: "${username}") {
+    const query = `query($username: String!) {
+      matchedUser(username: $username) {
         submissionCalendar
       }
     }`;
@@ -146,7 +146,7 @@ async function fetchLeetCode(
     const res = await fetch('https://leetcode.com/graphql', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({ query, variables: { username } }),
     });
 
     if (!res.ok) return result;
@@ -186,7 +186,7 @@ async function fetchCodeforces(
 
   try {
     const res = await fetch(
-      `https://codeforces.com/api/user.status?handle=${handle}&from=1&count=1000`
+      `https://codeforces.com/api/user.status?handle=${encodeURIComponent(handle)}&from=1&count=1000`
     );
 
     if (!res.ok) return result;
@@ -198,7 +198,7 @@ async function fetchCodeforces(
 
     if (json.status !== 'OK' || !json.result) return result;
 
-    // Count accepted submissions per day
+  // Count accepted submissions per day
     for (const sub of json.result) {
       if (sub.verdict !== 'OK') continue;
       const date = toISODate(new Date(sub.creationTimeSeconds * 1000));

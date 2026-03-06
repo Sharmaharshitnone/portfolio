@@ -31,6 +31,23 @@ const projects = defineCollection({
     architecture: z.string().optional(),
     challenges: z.array(z.string()).optional(),
     outcomes: z.array(z.string()).optional(),
+
+    // System design diagram — structured data for build-time SVG rendering
+    diagram: z.object({
+      nodes: z.array(z.object({
+        id: z.string(),
+        label: z.string(),
+        x: z.number(),
+        y: z.number(),
+        type: z.enum(['service', 'database', 'queue', 'cache', 'client', 'external']).default('service'),
+      })),
+      edges: z.array(z.object({
+        from: z.string(),
+        to: z.string(),
+        label: z.string().optional(),
+        style: z.enum(['solid', 'dashed']).default('solid'),
+      })),
+    }).optional(),
   }),
 });
 ```
@@ -83,6 +100,11 @@ const algorithms = defineCollection({
     executionTimeMs: z.number().optional(),
     memoryUsedKb: z.number().optional(),
     pubDate: z.coerce.date(),
+
+    // Wasm runner support — opt-in per algorithm
+    wasmSlug: z.string().optional(),
+    sampleInput: z.string().optional(),
+    sampleOutput: z.string().optional(),
   }),
 });
 ```
@@ -118,6 +140,7 @@ const logs = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/data/logs' }),
   schema: z.object({
     title: z.string().min(1),
+    summary: z.string().optional(),          // Short description for search/preview
     type: z.enum(['daily', 'weekly', 'project', 'problem']),
     tags: z.array(z.string()),
     mood: z.enum(['productive', 'learning', 'struggling', 'breakthrough']).optional(),

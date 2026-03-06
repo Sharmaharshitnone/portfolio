@@ -70,7 +70,7 @@ const cells: CellData[] = [];
 const firstDate = new Date(pulseData[0].date);
 const firstDayOfWeek = firstDate.getDay(); // 0=Sunday
 
-pulseData.forEach((d, i) => {
+pulseData.forEach((d) => {
     const date = new Date(d.date);
     const dayOfWeek = date.getDay();
     // weekIndex = column in the grid
@@ -138,6 +138,39 @@ const levelColors: Record<HeatmapLevel, string> = {
     3: 'var(--heatmap-l3)',
     4: 'var(--heatmap-l4)',
 };
+
+// Source colors — CSS custom properties for theme-awareness (ADR-012)
+const sourceColors: Record<string, string> = {
+    github: 'var(--heatmap-github)',
+    leetcode: 'var(--heatmap-leetcode)',
+    codeforces: 'var(--heatmap-codeforces)',
+};
+
+// Get dominant source for a cell
+function getDominantSource(cell: CellData): string | null {
+    if (cell.github > 0 && cell.github >= cell.leetcode && cell.github >= cell.codeforces) return 'github';
+    if (cell.leetcode > 0 && cell.leetcode >= cell.github && cell.leetcode >= cell.codeforces) return 'leetcode';
+    if (cell.codeforces > 0 && cell.codeforces >= cell.github && cell.codeforces >= cell.leetcode) return 'codeforces';
+    return null;
+}
+
+// Get cell color based on dominant source
+function getCellColor(cell: CellData): string {
+    const dominant = getDominantSource(cell);
+    if (dominant) {
+        return sourceColors[dominant];
+    }
+    return levelColors[cell.level];
+}
+
+// Get cell opacity based on count level — empty cells are fully opaque
+function getCellOpacity(cell: CellData): number {
+    if (cell.count === 0) return 1.0;   // Empty cells: solid, visible like GitHub
+    if (cell.count <= 2) return 0.55;
+    if (cell.count <= 5) return 0.75;
+    if (cell.count <= 9) return 0.90;
+    return 1.0;
+}
 ---
 
 <section aria-labelledby="pulse-heading" class="container pb-24 sm:pb-36">
@@ -203,10 +236,11 @@ const levelColors: Record<HeatmapLevel, string> = {
                             width={cellSize}
                             height={cellSize}
                             rx={2}
-                            fill={levelColors[cell.level]}
+                            fill={getCellColor(cell)}
                             stroke="var(--heatmap-border)"
                             stroke-width="0.5"
                             stroke-opacity="0.3"
+                            opacity={getCellOpacity(cell)}
                         >
                             <title>{tooltip}</title>
                         </rect>
@@ -220,25 +254,25 @@ const levelColors: Record<HeatmapLevel, string> = {
     <div class="flex items-center justify-between mt-4 text-[10px] font-mono" style="color: var(--heatmap-text);">
         <div class="flex items-center gap-3">
             <div class="flex items-center gap-1">
-                <span style="width:6px;height:6px;border-radius:50%;background:#3fb950;display:inline-block;" />
+                <span style="width:6px;height:6px;border-radius:50%;background:var(--heatmap-github);display:inline-block;" />
                 <span>GitHub</span>
             </div>
             <div class="flex items-center gap-1">
-                <span style="width:6px;height:6px;border-radius:50%;background:#ffa116;display:inline-block;" />
+                <span style="width:6px;height:6px;border-radius:50%;background:var(--heatmap-leetcode);display:inline-block;" />
                 <span>LeetCode</span>
             </div>
             <div class="flex items-center gap-1">
-                <span style="width:6px;height:6px;border-radius:50%;background:#58a6ff;display:inline-block;" />
+                <span style="width:6px;height:6px;border-radius:50%;background:var(--heatmap-codeforces);display:inline-block;" />
                 <span>Codeforces</span>
             </div>
         </div>
         <div class="flex items-center gap-1.5">
             <span>Less</span>
-            {([0, 1, 2, 3, 4] as HeatmapLevel[]).map((level) => (
-                <span
-                    style={`width:${cellSize}px;height:${cellSize}px;border-radius:2px;background:${levelColors[level]};display:inline-block;border:0.5px solid var(--heatmap-border);opacity:0.8;`}
-                />
-            ))}
+            <span style={`width:${cellSize}px;height:${cellSize}px;border-radius:2px;background:var(--heatmap-empty);display:inline-block;border:0.5px solid var(--heatmap-border);`} />
+            <span style={`width:${cellSize}px;height:${cellSize}px;border-radius:2px;background:var(--heatmap-github);display:inline-block;border:0.5px solid var(--heatmap-border);opacity:0.55;`} />
+            <span style={`width:${cellSize}px;height:${cellSize}px;border-radius:2px;background:var(--heatmap-github);display:inline-block;border:0.5px solid var(--heatmap-border);opacity:0.75;`} />
+            <span style={`width:${cellSize}px;height:${cellSize}px;border-radius:2px;background:var(--heatmap-github);display:inline-block;border:0.5px solid var(--heatmap-border);opacity:0.9;`} />
+            <span style={`width:${cellSize}px;height:${cellSize}px;border-radius:2px;background:var(--heatmap-github);display:inline-block;border:0.5px solid var(--heatmap-border);`} />
             <span>More</span>
         </div>
     </div>

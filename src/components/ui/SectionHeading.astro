@@ -9,7 +9,7 @@ const { text, id, class: className } = Astro.props;
 ---
 
 <h2
-    {id && { id }}
+    id={id}
     class={`text-foreground tracking-tight font-medium ${className || ""}`}
     style="font-size: clamp(1.5rem, 3vw, 2rem);"
 >

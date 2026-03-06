@@ -320,7 +320,7 @@ export function SearchBar({ items }: Props) {
                             className="flex-1 h-12 bg-transparent text-[var(--fg)] text-[15px] placeholder:text-[var(--faint)] outline-none font-sans"
                             aria-label="Search query"
                             autoComplete="off"
-                            spellCheck={false}
+                            spellcheck={false}
                         />
                         <kbd
                             className="px-1.5 py-0.5 text-[10px] font-mono rounded border border-[var(--border)] text-[var(--faint)] cursor-pointer select-none"

@@ -150,7 +150,7 @@ export const GET: APIRoute = async ({ props }) => {
     fitTo: { mode: 'width' as const, value: 1200 },
   }).render().asPng();
 
-  return new Response(png, {
+  return new Response(new Uint8Array(png), {
     headers: {
       'Content-Type': 'image/png',
       'Cache-Control': 'public, max-age=86400, immutable',
