@@ -2,7 +2,7 @@
  * OG Image Generation — Build-time static endpoint.
  *
  * Per ADR-011: Generates 1200×630 PNG OG cards at build time
- * using Satori (JSX → SVG) + @resvg/resvg-js (SVG → PNG).
+ * using Satori (JSX → SVG) + @resvg/resvg-wasm (SVG → PNG).
  *
  * Route: /og/projects/slug.png, /og/algorithms/slug.png, /og/logs/slug.png
  * Referenced by BaseHead.astro via og:image meta tag.
@@ -10,9 +10,15 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
 import { getCollection } from 'astro:content';
 import satori from 'satori';
-import { Resvg } from '@resvg/resvg-js';
+import { Resvg, initWasm } from '@resvg/resvg-wasm';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+
+// Initialize WASM once at module load — runs at build time on Node.js only.
+// @resvg/resvg-wasm has no native binaries so it bundles cleanly with Rollup.
+await initWasm(
+  readFileSync(join(process.cwd(), 'node_modules/@resvg/resvg-wasm/index_bg.wasm'))
+);
 
 // Load fonts as raw buffers — Satori requires TTF/OTF (not woff2)
 let interRegular: ArrayBuffer;

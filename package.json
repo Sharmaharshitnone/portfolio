@@ -24,7 +24,7 @@
     "@astrojs/rss": "^4.0.17",
     "@astrojs/sitemap": "^3.7.1",
     "@nanostores/preact": "^1.0.0",
-    "@resvg/resvg-js": "^2.6.2",
+    "@resvg/resvg-wasm": "^2.6.2",
     "@tailwindcss/vite": "^4.2.0",
     "astro": "^6.0.2",
     "marked": "^17.0.3",

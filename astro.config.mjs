@@ -41,9 +41,9 @@ export default defineConfig({
     vite: {
         plugins: [tailwindcss()],
         ssr: {
-            // @resvg/resvg-js uses native .node binaries — must be external
-            // for Rollup bundling. Only used at build time for OG image generation.
-            external: ['@resvg/resvg-js','node:fs', 'node:path'],
+            // node:fs / node:path are used at build time to load the resvg WASM binary.
+            // Mark them external so Rollup does not attempt to bundle Node built-ins.
+            external: ['node:fs', 'node:path'],
         },
     },
 
