@@ -16,9 +16,7 @@ export default defineConfig({
     },
 
     // Cloudflare Pages adapter — needed for server-rendered API routes
-    adapter: cloudflare({
-        platformProxy: { enabled: true },
-    }),
+    adapter: cloudflare(),
 
     integrations: [
         preact({ compat: false }),

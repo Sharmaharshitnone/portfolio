@@ -2,10 +2,11 @@
  * GET  /api/views?slug=xxx  → current view count
  * POST /api/views { slug }  → increment + return new count
  *
- * Reads Cloudflare binding env per-request (context.locals.runtime.env).
+ * Reads Cloudflare binding env via cloudflare:workers module.
  * prerender: false → runs as a Cloudflare Worker.
  */
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 import { createAppwrite, ID } from '../../lib/appwrite';
 import { json } from '../../lib/api-utils';
 import { Query } from 'node-appwrite';
@@ -25,8 +26,7 @@ export const GET: APIRoute = async (context) => {
   if (!parsed.success) return json({ error: 'Invalid slug parameter' }, 400);
   const slug = parsed.data;
 
-  const cfEnv = context.locals.runtime.env;
-  const { databases, DB_ID, viewsTableId } = createAppwrite(cfEnv);
+  const { databases, DB_ID, viewsTableId } = createAppwrite(env);
 
   if (!DB_ID || !viewsTableId) {
     return json({ views: 0 }, 200);
@@ -58,8 +58,7 @@ export const POST: APIRoute = async (context) => {
   }
   const validSlug = parsedSlug.data;
 
-  const cfEnv = context.locals.runtime.env;
-  const { databases, DB_ID, viewsTableId } = createAppwrite(cfEnv);
+  const { databases, DB_ID, viewsTableId } = createAppwrite(env);
 
   if (!DB_ID || !viewsTableId) {
     return json({ views: 0 }, 200);

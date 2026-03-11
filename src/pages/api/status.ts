@@ -8,6 +8,7 @@
  * prerender: false → runs as a Cloudflare Worker.
  */
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 import { createAppwrite } from '../../lib/appwrite';
 import { json } from '../../lib/api-utils';
 import { Query } from 'node-appwrite';
@@ -22,9 +23,8 @@ function defaultStatus() {
   };
 }
 
-export const GET: APIRoute = async (context) => {
-  const cfEnv = context.locals.runtime.env;
-  const { databases, DB_ID, statusTableId } = createAppwrite(cfEnv);
+export const GET: APIRoute = async (_context) => {
+  const { databases, DB_ID, statusTableId } = createAppwrite(env);
 
   if (!DB_ID || !statusTableId) {
     return statusJson(defaultStatus());

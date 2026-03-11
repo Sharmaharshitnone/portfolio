@@ -7,8 +7,8 @@
  *
  * ── Why a factory and not a module-level singleton? ──────────────────────────
  * Cloudflare Worker [vars] and secrets are NOT in process.env.
- * They are injected per-request into the Worker's env binding object,
- * accessible in Astro via context.locals.runtime.env.
+ * In @astrojs/cloudflare v13+, they are accessed via:
+ *   import { env } from 'cloudflare:workers'
  *
  * A module-level client would always read empty strings at import time.
  * createAppwrite(cfEnv) is called once per request handler with the live bindings.
