@@ -1,0 +1,40 @@
+diff --git a/dist/index.js b/dist/index.js
+index 7decee42b7ae984951a3d853f33de7fa061df407..e99a2dad7a7be4ea2b14d56df3a2757e8b2ed03f 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -88,6 +88,11 @@ function createIntegration({
+                 return {
+                   ...entryWorkerConfig,
+                   name: "prerender",
++                  // Strip pages_build_output_dir so the prerender worker is not treated
++                  // as a Pages project by @cloudflare/vite-plugin. Without this, the
++                  // validator rejects the auto-injected `assets.binding = "ASSETS"` as a
++                  // reserved name in Pages projects.
++                  pages_build_output_dir: void 0,
+                   ...needsImagesBinding && !entryWorkerConfig.images && {
+                     images: { binding: imagesBindingName }
+                   }
+diff --git a/dist/wrangler.js b/dist/wrangler.js
+index 86d4311c006a097e4c7377637e8b9f0fd86ce1b9..b7c0713e9e106dcc31ad6ccbe7d90831c3b17e00 100644
+--- a/dist/wrangler.js
++++ b/dist/wrangler.js
+@@ -11,6 +11,10 @@ function cloudflareConfigCustomizer(options) {
+     );
+     const hasImagesBinding = config.images?.binding !== void 0;
+     const hasAssetsBinding = config.assets?.binding !== void 0;
++    // For Pages projects (pages_build_output_dir is set), "ASSETS" is a reserved binding
++    // name and cannot be used. Pages handles static assets natively, so no assets binding
++    // needs to be injected. Only inject it for plain Workers projects.
++    const isPagesProject = config.pages_build_output_dir !== void 0;
+     return {
+       main: config.main ?? "@astrojs/cloudflare/entrypoints/server",
+       kv_namespaces: !needsSessionKVBinding || hasSessionBinding ? void 0 : [
+@@ -21,7 +25,7 @@ function cloudflareConfigCustomizer(options) {
+       images: hasImagesBinding || !imagesBindingName ? void 0 : {
+         binding: imagesBindingName
+       },
+-      assets: hasAssetsBinding ? void 0 : {
++      assets: hasAssetsBinding || isPagesProject ? void 0 : {
+         binding: DEFAULT_ASSETS_BINDING_NAME
+       }
+     };

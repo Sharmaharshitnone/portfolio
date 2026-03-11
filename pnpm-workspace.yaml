@@ -1,3 +1,6 @@
 onlyBuiltDependencies:
   - esbuild
   - sharp
+
+patchedDependencies:
+  '@astrojs/cloudflare@13.0.2': patches/@astrojs__cloudflare@13.0.2.patch
