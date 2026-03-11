@@ -16,7 +16,11 @@ export default defineConfig({
     },
 
     // Cloudflare Pages adapter — needed for server-rendered API routes
-    adapter: cloudflare(),
+    // imageService: 'passthrough' — this site does not use Cloudflare Images (paid).
+    // Without this, the adapter defaults to "cloudflare-binding" which injects an IMAGES
+    // binding into Miniflare that does not exist locally (nor in wrangler.toml), adding
+    // unnecessary instability to hot reloads.
+    adapter: cloudflare({ imageService: 'passthrough' }),
 
     integrations: [
         preact({ compat: false }),
@@ -40,11 +44,6 @@ export default defineConfig({
 
     vite: {
         plugins: [tailwindcss()],
-        ssr: {
-            // node:fs / node:path are used at build time to load the resvg WASM binary.
-            // Mark them external so Rollup does not attempt to bundle Node built-ins.
-            external: ['node:fs', 'node:path'],
-        },
     },
 
     // Hybrid: static by default, opt-in server with `export const prerender = false`

@@ -22,3 +22,9 @@ interface Env {
 declare namespace App {
   interface Locals extends import('@astrojs/cloudflare').Runtime {}
 }
+
+/** Allow bare .wasm imports — @cloudflare/vite-plugin resolves them as WebAssembly.Module. */
+declare module '*.wasm' {
+  const mod: WebAssembly.Module;
+  export default mod;
+}

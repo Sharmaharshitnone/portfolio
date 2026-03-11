@@ -6,30 +6,33 @@
  *
  * Route: /og/projects/slug.png, /og/algorithms/slug.png, /og/logs/slug.png
  * Referenced by BaseHead.astro via og:image meta tag.
+ *
+ * Runs inside @astrojs/cloudflare v13's workerd prerender server — no node:fs.
+ * WASM is imported as a WebAssembly.Module (bare .wasm import, Workers-native).
+ * Fonts are fetched via HTTP from the prerender server's static file handler.
  */
 import type { APIRoute, GetStaticPaths } from 'astro';
 import { getCollection } from 'astro:content';
 import satori from 'satori';
 import { Resvg, initWasm } from '@resvg/resvg-wasm';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import resvgWasm from '@resvg/resvg-wasm/index_bg.wasm';
 
-// Initialize WASM once at module load — runs at build time on Node.js only.
-// @resvg/resvg-wasm has no native binaries so it bundles cleanly with Rollup.
-await initWasm(
-  readFileSync(join(process.cwd(), 'node_modules/@resvg/resvg-wasm/index_bg.wasm'))
-);
+// Initialize WASM once — Workers-native: import gives a WebAssembly.Module directly.
+await initWasm(resvgWasm);
 
-// Load fonts as raw buffers — Satori requires TTF/OTF (not woff2)
-let interRegular: ArrayBuffer;
-let interBold: ArrayBuffer;
-try {
-  const base = join(process.cwd(), 'public', 'fonts');
-  interRegular = readFileSync(join(base, 'inter-regular.ttf')).buffer as ArrayBuffer;
-  interBold = readFileSync(join(base, 'inter-bold.ttf')).buffer as ArrayBuffer;
-} catch {
-  interRegular = new ArrayBuffer(0);
-  interBold = new ArrayBuffer(0);
+// Module-level Promise cache so fonts are fetched only once across all OG renders.
+let fontsPromise: Promise<{ regular: ArrayBuffer; bold: ArrayBuffer }> | null = null;
+
+function getFonts(origin: string): Promise<{ regular: ArrayBuffer; bold: ArrayBuffer }> {
+  if (!fontsPromise) {
+    fontsPromise = Promise.all([
+      fetch(new URL('/fonts/inter-regular.ttf', origin)).then((r) => r.arrayBuffer()),
+      fetch(new URL('/fonts/inter-bold.ttf', origin)).then((r) => r.arrayBuffer()),
+    ])
+      .then(([regular, bold]) => ({ regular, bold }))
+      .catch(() => ({ regular: new ArrayBuffer(0), bold: new ArrayBuffer(0) }));
+  }
+  return fontsPromise;
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
@@ -65,12 +68,14 @@ export const getStaticPaths: GetStaticPaths = async () => {
   ];
 };
 
-export const GET: APIRoute = async ({ props }) => {
+export const GET: APIRoute = async ({ props, url }) => {
   const { title, type, extra } = props as {
     title: string;
     type: string;
     extra: string;
   };
+
+  const { regular, bold } = await getFonts(url.origin);
 
   const svg = await satori(
     {
@@ -138,13 +143,13 @@ export const GET: APIRoute = async ({ props }) => {
       fonts: [
         {
           name: 'Inter',
-          data: interRegular,
+          data: regular,
           weight: 400,
           style: 'normal' as const,
         },
         {
           name: 'Inter',
-          data: interBold,
+          data: bold,
           weight: 700,
           style: 'normal' as const,
         },
