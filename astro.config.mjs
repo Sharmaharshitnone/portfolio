@@ -66,8 +66,8 @@ export default defineConfig({
         },
     },
 
-    // Hybrid: static by default, opt-in server with `export const prerender = false`
-    output: "static",
+    // Hybrid by default: static pages are prerendered, server routes opt-in with prerender = false
+    // The Cloudflare adapter handles this automatically in Astro 6+.
 
     // Enable TypeScript path aliases
     // tsconfig.json handles this via compilerOptions.paths

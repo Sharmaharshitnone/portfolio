@@ -5,8 +5,11 @@
  * from wrangler.toml [vars]. Secrets and bindings not in wrangler.toml are
  * augmented here.
  *
- * In @astrojs/cloudflare v13+, environment variables are accessed via
- * `import { env } from 'cloudflare:workers'` rather than locals.runtime.env.
+ * In @astrojs/cloudflare v13+:
+ *   - Environment variables: `import { env } from 'cloudflare:workers'`
+ *   - Execution context:     `Astro.locals.cfContext`
+ *   - cf object:             `Astro.request.cf`
+ *   - The old `Astro.locals.runtime.env` API is removed.
  *
  * @see https://developers.cloudflare.com/workers/runtime-apis/bindings/
  */
@@ -20,7 +23,8 @@ interface Env {
 }
 
 declare namespace App {
-  interface Locals extends import('@astrojs/cloudflare').Runtime {}
+  /** Runtime.cfContext gives access to the Workers ExecutionContext. */
+  interface Locals extends import('@astrojs/cloudflare').Runtime { }
 }
 
 /** Allow bare .wasm imports — @cloudflare/vite-plugin resolves them as WebAssembly.Module. */
