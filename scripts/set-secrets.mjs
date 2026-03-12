@@ -40,16 +40,6 @@ function ask(question) {
   });
 }
 
-function wrangler(cmd) {
-  try {
-    const out = execSync(`pnpm exec wrangler ${cmd}`, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'inherit'] });
-    return out.trim();
-  } catch (e) {
-    console.error(`[error] wrangler ${cmd.split(' ')[0]} failed:`, e.message);
-    process.exit(1);
-  }
-}
-
 async function main() {
   console.log('\n🚀 Cloudflare Pages — Environment Variable Setup');
   console.log('   Project:', PROJECT);
@@ -96,8 +86,8 @@ async function main() {
         console.log(`  Setting secret ${key}...`);
         try {
           execSync(
-            `echo "${val.trim()}" | pnpm exec wrangler pages secret put ${key} --project-name=${PROJECT}`,
-            { stdio: 'inherit' }
+            `pnpm exec wrangler pages secret put ${key} --project-name=${PROJECT}`,
+            { input: val.trim(), stdio: ['pipe', 'inherit', 'inherit'] }
           );
         } catch (e) {
           console.error(`Failed to set secret ${key}:`, e.message);

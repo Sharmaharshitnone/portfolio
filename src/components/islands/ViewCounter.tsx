@@ -26,8 +26,8 @@ export function ViewCounter({ slug }: Props) {
         });
 
         if (res.ok && !cancelled) {
-          const data = await res.json();
-          setViews(data.views ?? 0);
+          const data = await res.json() as Record<string, unknown>;
+          setViews((data.views as number) ?? 0);
         }
       } catch {
         // Silent fail — page stays functional

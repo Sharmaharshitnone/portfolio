@@ -15,6 +15,21 @@ challenges:
 outcomes:
   - "87 GitHub stars"
   - "50k jobs/sec throughput on single node"
+diagram:
+  nodes:
+    - { id: "producer", label: "Producer", x: 20, y: 60, type: "client" }
+    - { id: "redis", label: "Redis Streams", x: 210, y: 60, type: "queue" }
+    - { id: "consumer", label: "Consumer Grp", x: 420, y: 10, type: "service" }
+    - { id: "worker", label: "Worker Pool", x: 420, y: 120, type: "service" }
+    - { id: "dlq", label: "Dead Letter Q", x: 630, y: 120, type: "queue" }
+    - { id: "metrics", label: "Prometheus", x: 630, y: 10, type: "external" }
+  edges:
+    - { from: "producer", to: "redis", label: "XADD", style: "solid" }
+    - { from: "redis", to: "consumer", label: "XREADGROUP", style: "solid" }
+    - { from: "consumer", to: "worker", label: "dispatch", style: "solid" }
+    - { from: "worker", to: "redis", label: "XACK", style: "dashed" }
+    - { from: "worker", to: "dlq", label: "max retries", style: "dashed" }
+    - { from: "worker", to: "metrics", label: "expose", style: "dashed" }
 ---
 
 Redis Streams enables **consumer group semantics** — multiple workers can each claim an entry, and unacknowledged entries flow to a Dead Letter Queue.

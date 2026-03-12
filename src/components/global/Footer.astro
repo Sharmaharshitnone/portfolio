@@ -1,9 +1,12 @@
 ---
 /**
- * Footer — Zero-JS Astro shell component.
+ * Footer — Astro shell component.
  * Static content, inline SVGs for social icons.
  * Year computed at build time.
+ * EdgeTelemetry island hydrated with client:idle (enhancement).
  */
+import { EdgeTelemetry } from "../islands/EdgeTelemetry";
+
 const year = new Date().getFullYear();
 
 const SOCIAL_LINKS = [
@@ -33,9 +36,12 @@ const SOCIAL_LINKS = [
 <footer style="border-top: 1px solid var(--border);">
     <div class="container py-12">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <span class="text-faint text-[13px]">
-                Harshit Sharma &middot; {year}
-            </span>
+            <div class="flex flex-col gap-2">
+                <span class="text-faint text-[13px]">
+                    Harshit Sharma &middot; {year}
+                </span>
+                <EdgeTelemetry client:idle />
+            </div>
 
             <div class="flex items-center gap-1">
                 {SOCIAL_LINKS.map((link) => (

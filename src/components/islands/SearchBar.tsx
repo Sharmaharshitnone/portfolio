@@ -265,35 +265,36 @@ export function SearchBar({ items }: Props) {
     // Reset activeIdx when results change
     useEffect(() => { setActiveIdx(0); }, [query]);
 
-    if (!open) {
-        // ── Trigger button (in navbar) ──
-        return (
-            <button
-                onClick={() => setOpen(true)}
-                className="flex items-center gap-2 text-[var(--faint)] hover:text-[var(--dim)] transition-colors text-[13px] font-mono"
-                aria-label="Open search (Ctrl+K)"
-                type="button"
-            >
-                <SearchIcon />
-                <span className="hidden sm:inline">Search</span>
-                <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono rounded border border-[var(--border)] text-[var(--faint)] bg-[var(--surface)]">
-                    ⌘K
-                </kbd>
-            </button>
-        );
-    }
-
-    // ── Modal ──
+    // ── Always use a stable single root element ──
+    // A transition:persist island must never switch between different root
+    // VNode types (e.g. <button> vs <>Fragment</>). Preact's diffChildren
+    // crashes with "o2 is null" when the root structure changes across renders.
     let flatIdx = -1;
 
     return (
-        <>
-            {/* Backdrop */}
-            <div
-                className="fixed inset-0 z-[200] bg-[#000000]/60 backdrop-blur-sm"
-                onClick={() => setOpen(false)}
-                aria-hidden="true"
-            />
+        <div className="contents">
+            {!open ? (
+                // ── Trigger button (in navbar) ──
+                <button
+                    onClick={() => setOpen(true)}
+                    className="flex items-center gap-2 text-[var(--faint)] hover:text-[var(--dim)] transition-colors text-[13px] font-mono"
+                    aria-label="Open search (Ctrl+K)"
+                    type="button"
+                >
+                    <SearchIcon />
+                    <span className="hidden sm:inline">Search</span>
+                    <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono rounded border border-[var(--border)] text-[var(--faint)] bg-[var(--surface)]">
+                        ⌘K
+                    </kbd>
+                </button>
+            ) : (
+                <>
+                    {/* Backdrop */}
+                    <div
+                        className="fixed inset-0 z-[200] bg-[#000000]/60 backdrop-blur-sm"
+                        onClick={() => setOpen(false)}
+                        aria-hidden="true"
+                    />
 
             {/* Dialog */}
             <div
@@ -319,7 +320,7 @@ export function SearchBar({ items }: Props) {
                             className="flex-1 h-12 bg-transparent text-[var(--fg)] text-[15px] placeholder:text-[var(--faint)] outline-none font-sans"
                             aria-label="Search query"
                             autoComplete="off"
-                            spellCheck={false}
+                            spellcheck={false}
                         />
                         <kbd
                             className="px-1.5 py-0.5 text-[10px] font-mono rounded border border-[var(--border)] text-[var(--faint)] cursor-pointer select-none"
@@ -431,6 +432,8 @@ export function SearchBar({ items }: Props) {
                     )}
                 </div>
             </div>
-        </>
+                </>
+            )}
+        </div>
     );
 }

@@ -245,6 +245,108 @@ export function ThemeToggle() {
 
 **Behavior:** On mount → `POST /api/views` with slug → render returned count.
 
+**Status:** Exists but not currently imported in any page. Wire up or remove.
+
+---
+
+### SearchBar.tsx (Preact Island)
+
+| Property | Type | Required | Description |
+|---|---|---|---|
+| `items` | `SearchItem[]` | ✅ | All searchable items (projects, algorithms, logs) |
+
+**Hydration:** `client:load` with `transition:persist` — Survives View Transitions.
+
+**Features:**
+- Cmd+K / Ctrl+K keyboard shortcut to open
+- `/` key opens search when not focused on an input
+- Fuzzy scoring with word-boundary, tag, and consecutive-char matching
+- Results grouped by type (Projects, Algorithms, Logs) with type icons
+- Arrow key navigation, Enter to select, Escape to close
+- Highlights matched substrings in results
+
+**Theme pattern:** CSS custom properties only (`var(--*)`) — no nanostore import.
+
+---
+
+### LiveStatus.tsx (Preact Island)
+
+| Property | Type | Required | Description |
+|---|---|---|---|
+| (none) | — | — | Self-contained, fetches from /api/status |
+
+**Hydration:** `client:idle` — Not critical for first paint.
+
+**Behavior:** On mount → `GET /api/status` → displays emoji + status text.
+Falls back to default if API fails.
+
+---
+
+### WasmRunner.tsx (Preact Island)
+
+| Property | Type | Required | Description |
+|---|---|---|---|
+| `wasmSlug` | `string` | ✅ | Path to the compiled WASM module |
+| `sampleInput` | `string` | ✅ | Default input for the runner |
+| `sampleOutput` | `string` | ✅ | Expected output for validation |
+
+**Hydration:** `client:visible` — Only loads when scrolled to on algorithm detail pages.
+
+**Behavior:** Loads WASM module, provides editable input textarea, runs algorithm,
+displays output and execution time. Opt-in per algorithm via `wasmSlug` frontmatter field.
+
+---
+
+### HexOverlay.tsx (Preact Island)
+
+| Property | Type | Required | Description |
+|---|---|---|---|
+| (none) | — | — | Self-contained canvas hex grid animation |
+
+**Hydration:** `client:load` — Background animation on homepage.
+
+**Theme pattern:** CSS custom properties for hex colors.
+
+---
+
+### HexToggle.tsx (Preact Island)
+
+| Property | Type | Required | Description |
+|---|---|---|---|
+| (none) | — | — | Toggles HexOverlay visibility |
+
+**Hydration:** `client:load` — Paired with HexOverlay.
+
+---
+
+### EdgeTelemetry.tsx (Preact Island)
+
+| Property | Type | Required | Description |
+|---|---|---|---|
+| (none) | — | — | Self-contained, pings `/cdn-cgi/trace` |
+
+**Hydration:** `client:idle` — Purely diagnostic, lowest priority.
+
+**Behavior:** Fetches Cloudflare edge trace endpoint, displays colo/location info.
+Uses relative URL (`/cdn-cgi/trace`) so it works in all environments.
+
+---
+
+### EngineeringPulse.astro (Static Section)
+
+| Property | Type | Required | Description |
+|---|---|---|---|
+| (inline data) | — | — | Fetches data at build time via `pulse-data.ts` |
+
+**Hydration:** None — fully static HTML rendered at build time.
+
+**Features:**
+- GitHub-style contribution heatmap aggregating GitHub, LeetCode, Codeforces activity
+- Dominant-source coloring: cell color = platform with highest count (see ADR-013)
+- Source-specific CSS vars per ADR-012: `var(--heatmap-github)`, `var(--heatmap-leetcode)`, `var(--heatmap-codeforces)`
+- Legend shows source dots + Less→More opacity gradient
+- Year/month labels on axes
+
 ---
 
 ### ErrorBoundary.tsx (Preact Utility)

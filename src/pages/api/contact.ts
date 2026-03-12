@@ -2,11 +2,13 @@
  * POST /api/contact — Server-rendered API route (Cloudflare Worker).
  *
  * Receives { name, email, message } → writes to Appwrite ContactMessages table.
- * Validates with Zod. Reads Cloudflare binding env per-request.
+ * Validates with Zod. Reads Cloudflare binding env via cloudflare:workers module.
  * prerender: false → runs on Cloudflare Workers, NOT statically generated.
  */
 import type { APIRoute } from 'astro';
+import { env } from 'cloudflare:workers';
 import { createAppwrite, ID } from '../../lib/appwrite';
+import { json } from '../../lib/api-utils';
 import { z } from 'astro/zod';
 
 export const prerender = false;
@@ -34,8 +36,7 @@ export const POST: APIRoute = async (context) => {
   }
 
   // ── Read CF bindings per-request ─────────────────────
-  const cfEnv = (context.locals as any).runtime?.env ?? {};
-  const { databases, DB_ID, contactTableId } = createAppwrite(cfEnv);
+  const { databases, DB_ID, contactTableId } = createAppwrite(env);
 
   if (!DB_ID || !contactTableId) {
     console.error('[contact] Appwrite not configured — DB_ID or CONTACT_TABLE_ID missing in CF bindings');
@@ -56,11 +57,3 @@ export const POST: APIRoute = async (context) => {
     return json({ error: 'Failed to send message. Please try again later.' }, 500);
   }
 };
-
-/** Helper: create JSON Response with status code */
-function json(data: Record<string, unknown>, status: number): Response {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}

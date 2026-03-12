@@ -1,0 +1,285 @@
+---
+/**
+ * SystemDiagram.astro — Build-time SVG system architecture diagram.
+ * Zero JS. Renders nodes (boxes with type icons) and edges (arrowed lines)
+ * from structured frontmatter data.
+ *
+ * Uses CSS custom properties for theming (ADR-012):
+ * --diagram-bg, --diagram-node-bg, --diagram-node-border,
+ * --diagram-node-text, --diagram-edge, --diagram-edge-active, --diagram-label
+ *
+ * Node types: service, database, queue, cache, client, external
+ * Edge styles: solid, dashed
+ */
+
+interface DiagramNode {
+    id: string;
+    label: string;
+    x: number;
+    y: number;
+    type: 'service' | 'database' | 'queue' | 'cache' | 'client' | 'external';
+}
+
+interface DiagramEdge {
+    from: string;
+    to: string;
+    label?: string;
+    style: 'solid' | 'dashed';
+}
+
+interface Props {
+    nodes: DiagramNode[];
+    edges: DiagramEdge[];
+    title?: string;
+}
+
+const { nodes, edges, title } = Astro.props;
+
+// Node dimensions
+const nodeW = 140;
+const nodeH = 52;
+const nodeRx = 6;
+
+// Compute SVG viewport from node positions
+const padding = 40;
+const maxX = Math.max(...nodes.map((n) => n.x + nodeW)) + padding;
+const maxY = Math.max(...nodes.map((n) => n.y + nodeH)) + padding;
+const svgWidth = maxX + padding;
+const svgHeight = maxY + padding;
+
+// Build lookup for edge routing
+const nodeMap = new Map(nodes.map((n) => [n.id, n]));
+
+/**
+ * Compute connection points between two nodes.
+ * Picks the closest pair of port centers (top, bottom, left, right).
+ */
+function getConnectionPoints(from: DiagramNode, to: DiagramNode) {
+    const ports = (n: DiagramNode) => [
+        { x: n.x + nodeW / 2, y: n.y },             // top
+        { x: n.x + nodeW / 2, y: n.y + nodeH },     // bottom
+        { x: n.x,             y: n.y + nodeH / 2 },  // left
+        { x: n.x + nodeW,     y: n.y + nodeH / 2 },  // right
+    ];
+
+    const fromPorts = ports(from);
+    const toPorts = ports(to);
+
+    let best = { dist: Infinity, from: fromPorts[0], to: toPorts[0] };
+
+    for (const fp of fromPorts) {
+        for (const tp of toPorts) {
+            const dist = Math.hypot(fp.x - tp.x, fp.y - tp.y);
+            if (dist < best.dist) {
+                best = { dist, from: fp, to: tp };
+            }
+        }
+    }
+
+    return best;
+}
+
+// Type icon symbols — small inline SVG paths per node type
+const typeIcons: Record<DiagramNode['type'], string> = {
+    service:  'M4 2h8a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V4a2 2 0 012-2zm1 3v2h6V5H5zm0 4v2h6V9H5z',
+    database: 'M3 4c0-1.1 2-2 5-2s5 .9 5 2v8c0 1.1-2 2-5 2s-5-.9-5-2V4zm0 0c0 1.1 2 2 5 2s5-.9 5-2',
+    queue:    'M2 6h3v4H2V6zm4.5 0h3v4h-3V6zm4.5 0h3v4H11V6zM1 8h1m12 0h1',
+    cache:    'M13 2L3 14h4l-1 6 10-12H12l1-6z',
+    client:   'M4 3h8a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1V4a1 1 0 011-1zm-1 9h10v1H3v-1zm2 1v1h6v-1H5z',
+    external: 'M10 1.5l3 3-3 3M6 14.5l-3-3 3-3M9 2.5l-2 11',
+};
+
+// Type accent colors — subtle color coding per node type
+const typeAccents: Record<DiagramNode['type'], string> = {
+    service:  'var(--diagram-edge-active)',
+    database: '#f0883e',
+    queue:    '#d2a8ff',
+    cache:    '#3fb950',
+    client:   'var(--diagram-node-text)',
+    external: 'var(--diagram-label)',
+};
+---
+
+<div class="system-diagram-wrap overflow-x-auto scrollbar-none -mx-2 px-2">
+    {title && (
+        <h3 class="text-sm font-mono mb-3" style="color: var(--diagram-label);">
+            {title}
+        </h3>
+    )}
+
+    <svg
+        width={svgWidth}
+        height={svgHeight}
+        viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+        role="img"
+        aria-label={title ? `System architecture diagram: ${title}` : 'System architecture diagram'}
+        class="system-diagram"
+        style="min-width: fit-content;"
+    >
+        <defs>
+            {/* Arrowhead marker */}
+            <marker
+                id="diagram-arrow"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto-start-reverse"
+            >
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--diagram-edge)" />
+            </marker>
+            <marker
+                id="diagram-arrow-active"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto-start-reverse"
+            >
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--diagram-edge-active)" />
+            </marker>
+        </defs>
+
+        {/* Edges — rendered first so nodes draw on top */}
+        {edges.map((edge) => {
+            const fromNode = nodeMap.get(edge.from);
+            const toNode = nodeMap.get(edge.to);
+            if (!fromNode || !toNode) return null;
+
+            const pts = getConnectionPoints(fromNode, toNode);
+            const edgeColor = edge.style === 'dashed' ? 'var(--diagram-edge)' : 'var(--diagram-edge-active)';
+            const markerId = edge.style === 'dashed' ? 'diagram-arrow' : 'diagram-arrow-active';
+            const strokeDash = edge.style === 'dashed' ? '6,4' : 'none';
+
+            // Midpoint for label
+            const midX = (pts.from.x + pts.to.x) / 2;
+            const midY = (pts.from.y + pts.to.y) / 2;
+
+            return (
+                <g class="diagram-edge">
+                    <line
+                        x1={pts.from.x}
+                        y1={pts.from.y}
+                        x2={pts.to.x}
+                        y2={pts.to.y}
+                        stroke={edgeColor}
+                        stroke-width="1.5"
+                        stroke-dasharray={strokeDash}
+                        marker-end={`url(#${markerId})`}
+                    />
+                    {edge.label && (
+                        <g>
+                            <rect
+                                x={midX - edge.label.length * 3.2 - 4}
+                                y={midY - 8}
+                                width={edge.label.length * 6.4 + 8}
+                                height={16}
+                                rx={3}
+                                fill="var(--diagram-bg)"
+                                stroke="var(--diagram-node-border)"
+                                stroke-width="0.5"
+                            />
+                            <text
+                                x={midX}
+                                y={midY + 1}
+                                text-anchor="middle"
+                                dominant-baseline="central"
+                                fill="var(--diagram-label)"
+                                font-size="9"
+                                font-family="'JetBrains Mono', monospace"
+                            >
+                                {edge.label}
+                            </text>
+                        </g>
+                    )}
+                </g>
+            );
+        })}
+
+        {/* Nodes */}
+        {nodes.map((node) => {
+            const accentColor = typeAccents[node.type];
+
+            return (
+                <g class="diagram-node" data-type={node.type}>
+                    {/* Node background */}
+                    <rect
+                        x={node.x}
+                        y={node.y}
+                        width={nodeW}
+                        height={nodeH}
+                        rx={nodeRx}
+                        fill="var(--diagram-node-bg)"
+                        stroke="var(--diagram-node-border)"
+                        stroke-width="1"
+                    />
+                    {/* Top accent line */}
+                    <line
+                        x1={node.x + nodeRx}
+                        y1={node.y}
+                        x2={node.x + nodeW - nodeRx}
+                        y2={node.y}
+                        stroke={accentColor}
+                        stroke-width="2"
+                        stroke-linecap="round"
+                    />
+                    {/* Type icon */}
+                    <svg
+                        x={node.x + 10}
+                        y={node.y + (nodeH - 16) / 2}
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        stroke={accentColor}
+                        stroke-width="1.2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <path d={typeIcons[node.type]} />
+                    </svg>
+                    {/* Node label */}
+                    <text
+                        x={node.x + 34}
+                        y={node.y + nodeH / 2 + 1}
+                        dominant-baseline="central"
+                        fill="var(--diagram-node-text)"
+                        font-size="12"
+                        font-family="'JetBrains Mono', monospace"
+                        font-weight="500"
+                    >
+                        {node.label}
+                    </text>
+                    {/* Type badge */}
+                    <text
+                        x={node.x + nodeW - 8}
+                        y={node.y + nodeH - 6}
+                        text-anchor="end"
+                        fill="var(--diagram-label)"
+                        font-size="7"
+                        font-family="'JetBrains Mono', monospace"
+                        opacity="0.6"
+                    >
+                        {node.type}
+                    </text>
+                    {/* Accessible title */}
+                    <title>{`${node.type}: ${node.label}`}</title>
+                </g>
+            );
+        })}
+    </svg>
+</div>
+
+<style>
+    .system-diagram {
+        transition: opacity 0.3s ease;
+    }
+    .diagram-node rect {
+        transition: stroke 0.15s ease, fill 0.15s ease;
+    }
+    .diagram-edge line {
+        transition: stroke 0.15s ease;
+    }
+</style>

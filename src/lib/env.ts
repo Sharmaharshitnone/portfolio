@@ -26,20 +26,6 @@ function optionalEnv(key: string, fallback = ""): string {
     return fromImportMeta ?? fromProcess ?? fallback;
 }
 
-/**
- * Read required env var — throws at startup if the value is missing.
- * Use this for vars that must be present for a server route to function at all.
- * Fail fast > silent empty string that causes a cryptic SDK error later.
- */
-function requireEnv(key: string): string {
-    const value = optionalEnv(key);
-    if (!value) {
-        // In dev this will surface in the wrangler console immediately.
-        console.error(`[env] Required env var "${key}" is not set. Check wrangler.toml [vars] or Pages secrets.`);
-    }
-    return value; // Still returns "" — callers guard with !DB_ID etc. for graceful fallback
-}
-
 export const env = {
     // ── Public site config ──────────────────────────────────────────────────
     /** Canonical public URL — used in sitemap, OG images, canonical links. */

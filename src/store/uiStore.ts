@@ -57,15 +57,34 @@ export const $algoFilter = atom<AlgoFilterState>({
   difficulty: null,
 });
 
+// ═══════════════ VIEW MODE STATE ═══════════════
+// "ui" = normal view, "hex" = hex dump overlay.
+// Transient — resets on full page navigation.
+export type ViewMode = 'ui' | 'hex';
+
+export const $viewMode = atom<ViewMode>('ui');
+
+export function toggleViewMode(): void {
+  $viewMode.set($viewMode.get() === 'ui' ? 'hex' : 'ui');
+}
+
 // ═══════════════ VIEW-TRANSITION SYNC ═══════════════
 // Bundled modules execute once; this listener persists across navigations.
 // It keeps $theme in-sync after every client-side View Transition swap so
 // all islands that useStore($theme) re-render with the correct value.
 if (typeof document !== 'undefined') {
   document.addEventListener('astro:after-swap', () => {
+    // Re-sync theme from localStorage after View Transition swap
     const stored = localStorage.getItem(THEME_KEY);
     if (stored === 'dark' || stored === 'light' || stored === 'system') {
       $theme.set(stored);
+    }
+
+    // Reset hex view mode — hex dump is page-specific content, so navigating
+    // away always exits hex mode. Both HexToggle and HexOverlay use
+    // transition:persist, so they survive the swap and reactively update.
+    if ($viewMode.get() !== 'ui') {
+      $viewMode.set('ui');
     }
   });
 }

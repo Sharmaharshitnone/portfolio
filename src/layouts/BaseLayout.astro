@@ -1,6 +1,8 @@
 ---
 import { ThemeToggle } from "../components/islands/ThemeToggle";
 import { SearchBar } from "../components/islands/SearchBar";
+import { HexToggle } from "../components/islands/HexToggle";
+import { HexOverlay } from "../components/islands/HexOverlay";
 import Navbar from "../components/global/Navbar.astro";
 import Footer from "../components/global/Footer.astro";
 import BaseHead from "../components/global/BaseHead.astro";
@@ -78,6 +80,7 @@ const searchItems = [
         <Navbar>
             <Fragment slot="nav-right">
                 <SearchBar client:load transition:persist items={searchItems} />
+                <HexToggle client:load transition:persist />
                 <ThemeToggle client:load transition:persist />
             </Fragment>
         </Navbar>
@@ -89,5 +92,11 @@ const searchItems = [
         </main>
 
         <Footer />
+
+        <!-- Hex dump overlay — renders nothing when mode === 'ui'.
+             transition:persist keeps it alive across navigations so it
+             doesn't get destroyed/re-created out of sync with HexToggle.
+             $viewMode resets to 'ui' on astro:after-swap (uiStore.ts). -->
+        <HexOverlay client:idle transition:persist />
     </body>
 </html>

@@ -1,0 +1,53 @@
+# Compile WebAssembly Algorithm Solutions
+#
+# Triggered on push to wasm-src/*.cpp files.
+# Compiles C++ solutions to .wasm using Emscripten,
+# then commits artifacts to public/wasm/.
+#
+name: Compile Wasm
+
+on:
+  push:
+    paths:
+      - 'wasm-src/**/*.cpp'
+      - 'wasm-src/**/*.h'
+      - '.github/workflows/compile-wasm.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.51
+
+      - name: Verify emcc
+        run: emcc --version
+
+      - name: Compile all solutions
+        run: |
+          chmod +x wasm-src/compile-wasm.sh
+          ./wasm-src/compile-wasm.sh --all
+
+      - name: Show artifacts
+        run: ls -lh public/wasm/
+
+      - name: Commit .wasm artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/wasm/*.wasm
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: compile wasm artifacts [skip ci]"
+            git push
+          fi

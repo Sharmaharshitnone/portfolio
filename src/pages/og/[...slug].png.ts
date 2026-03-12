@@ -2,28 +2,50 @@
  * OG Image Generation — Build-time static endpoint.
  *
  * Per ADR-011: Generates 1200×630 PNG OG cards at build time
- * using Satori (JSX → SVG) + @resvg/resvg-js (SVG → PNG).
+ * using Satori (JSX → SVG) + @resvg/resvg-wasm (SVG → PNG).
  *
  * Route: /og/projects/slug.png, /og/algorithms/slug.png, /og/logs/slug.png
  * Referenced by BaseHead.astro via og:image meta tag.
+ *
+ * Runs inside @astrojs/cloudflare v13's workerd prerender server — no node:fs.
+ * WASM is imported as a WebAssembly.Module (bare .wasm import, Workers-native).
+ * Fonts are fetched via HTTP from the prerender server's static file handler.
+ *
+ * satori/standalone is used (not satori) so that the yoga WASM can be supplied
+ * as a pre-compiled WebAssembly.Module. This bypasses the Emscripten base64
+ * loader path which calls WebAssembly.instantiate(buffer) — disallowed in workerd.
+ * satori/standalone's init(module) calls WebAssembly.instantiate(module, imports)
+ * (the two-arg form with a pre-compiled Module), which IS allowed in workerd.
  */
 import type { APIRoute, GetStaticPaths } from 'astro';
 import { getCollection } from 'astro:content';
-import satori from 'satori';
-import { Resvg } from '@resvg/resvg-js';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import satori, { init as initSatori } from 'satori/standalone';
+import { Resvg, initWasm } from '@resvg/resvg-wasm';
+import resvgWasm from '@resvg/resvg-wasm/index_bg.wasm';
+// yoga.wasm is not in satori's exports map; resolved via Vite alias in astro.config.mjs.
+// @cloudflare/vite-plugin resolves bare .wasm imports as WebAssembly.Module.
+import yogaWasm from 'satori/yoga.wasm';
 
-// Load fonts as raw buffers — Satori requires TTF/OTF (not woff2)
-let interRegular: ArrayBuffer;
-let interBold: ArrayBuffer;
-try {
-  const base = join(process.cwd(), 'public', 'fonts');
-  interRegular = readFileSync(join(base, 'inter-regular.ttf')).buffer as ArrayBuffer;
-  interBold = readFileSync(join(base, 'inter-bold.ttf')).buffer as ArrayBuffer;
-} catch {
-  interRegular = new ArrayBuffer(0);
-  interBold = new ArrayBuffer(0);
+// Initialize both WASM modules once at module scope (workerd-safe).
+// - resvgWasm: WebAssembly.Module imported via bare .wasm import
+// - yogaWasm: WebAssembly.Module imported via bare .wasm import
+// Both use the Workers-native pre-compiled Module path; no dynamic instantiation.
+await initWasm(resvgWasm);
+await initSatori(yogaWasm);
+
+// Module-level Promise cache so fonts are fetched only once across all OG renders.
+let fontsPromise: Promise<{ regular: ArrayBuffer; bold: ArrayBuffer }> | null = null;
+
+function getFonts(origin: string): Promise<{ regular: ArrayBuffer; bold: ArrayBuffer }> {
+  if (!fontsPromise) {
+    fontsPromise = Promise.all([
+      fetch(new URL('/fonts/inter-regular.ttf', origin)).then((r) => r.arrayBuffer()),
+      fetch(new URL('/fonts/inter-bold.ttf', origin)).then((r) => r.arrayBuffer()),
+    ])
+      .then(([regular, bold]) => ({ regular, bold }))
+      .catch(() => ({ regular: new ArrayBuffer(0), bold: new ArrayBuffer(0) }));
+  }
+  return fontsPromise;
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
@@ -59,12 +81,14 @@ export const getStaticPaths: GetStaticPaths = async () => {
   ];
 };
 
-export const GET: APIRoute = async ({ props }) => {
+export const GET: APIRoute = async ({ props, url }) => {
   const { title, type, extra } = props as {
     title: string;
     type: string;
     extra: string;
   };
+
+  const { regular, bold } = await getFonts(url.origin);
 
   const svg = await satori(
     {
@@ -132,13 +156,13 @@ export const GET: APIRoute = async ({ props }) => {
       fonts: [
         {
           name: 'Inter',
-          data: interRegular,
+          data: regular,
           weight: 400,
           style: 'normal' as const,
         },
         {
           name: 'Inter',
-          data: interBold,
+          data: bold,
           weight: 700,
           style: 'normal' as const,
         },
@@ -150,7 +174,7 @@ export const GET: APIRoute = async ({ props }) => {
     fitTo: { mode: 'width' as const, value: 1200 },
   }).render().asPng();
 
-  return new Response(png, {
+  return new Response(new Uint8Array(png), {
     headers: {
       'Content-Type': 'image/png',
       'Cache-Control': 'public, max-age=86400, immutable',

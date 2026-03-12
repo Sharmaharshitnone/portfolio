@@ -42,9 +42,9 @@ export function ContactForm() {
                 setState("success");
                 form.reset();
             } else {
-                const body = await res.json().catch(() => ({}));
+                const body = await res.json().catch(() => ({})) as Record<string, unknown>;
                 setState("error");
-                setErrorMsg(body.error ?? "Something went wrong. Please try again.");
+                setErrorMsg((body.error as string) ?? "Something went wrong. Please try again.");
             }
         } catch {
             setState("error");

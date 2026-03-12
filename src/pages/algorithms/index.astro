@@ -3,7 +3,6 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import AlgorithmRow from "../../components/domain/AlgorithmRow.astro";
 import { AlgoFilter } from "../../components/islands/AlgoFilter";
 import { getCollection } from "astro:content";
-import { PLATFORM_NAMES } from "../../lib/constants";
 
 const algorithms = await getCollection("algorithms");
 const sortedAlgos = algorithms.sort(
@@ -18,7 +17,7 @@ const stats = {
 };
 
 // Derive unique values for filter dropdowns
-const platforms = [...new Set(algorithms.map((a) => PLATFORM_NAMES[a.data.platform] ?? a.data.platform))];
+const platforms = [...new Set(algorithms.map((a) => a.data.platform))];
 const difficulties = [...new Set(algorithms.map((a) => a.data.difficulty))];
 ---
 

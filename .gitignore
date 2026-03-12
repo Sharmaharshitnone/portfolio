@@ -23,7 +23,7 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 .vscode/
-.github/
+
 # Cloudflare Wrangler local state (contains auth tokens)
 .wrangler/
 
@@ -36,6 +36,6 @@ public/fonts/*.ttf
 
 # Deployment artifacts
 .cloudflare/
-
+AGENTS.md
 # architecture/
 # Uncomment above line to exclude architecture docs
