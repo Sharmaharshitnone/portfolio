@@ -79,3 +79,4 @@ pnpm pages:deploy
 Notes:
 - Public values (prefixed `PUBLIC_`) are safe for client-side use; secrets like `APPWRITE_API_KEY` must not be exposed to the browser.
 - If your Appwrite collections are locked for public writes, `APPWRITE_API_KEY` is required for server write operations.
+- sample
